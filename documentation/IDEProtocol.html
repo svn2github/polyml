@@ -1,0 +1,172 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+
+<head>
+<title>IDE Communications Protocol</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2><font face="Arial"><strong>IDE Communications Protocol</strong></font></h2>
+
+<p>Poly/ML release 5.3 introduces support for an Integrated Development Environment 
+  to extract extra information about a program. This documents the protocol used 
+  to exchange information with the front-end. It is written on top of functions 
+  that extract the information from the compiler's parse tree. Some applications 
+  may find it more convenient to interact directly with these functions and implement 
+  their own protocol. This document is primarily aimed at writers of IDEs or plug-ins 
+  who are interacting with the normal ML top-level.</p>
+<h3><font face="Arial, Helvetica, sans-serif">Lexical</font></h3>
+<p>The basic format uses a binary XML-like representation in which the escape 
+  character (0x1b) is used as a special marker. It may be followed by other characters 
+  that determine how the remainder of the input is to be treated. Strings are 
+  sent as a sequence of bytes terminated by the escape character. If the escape 
+  character itself appears in the string it is sent as two escape characters. 
+  Where a value represents a number it is sent as base ten, possibly preceded 
+  by ~ or -.</p>
+<h3><font face="Arial, Helvetica, sans-serif">Packets and Mark-up</font></h3>
+<p>There are two different ways in which escape combinations may occur. Within 
+  the communications protocol data is exchanged between the IDE and the Poly/ML 
+  front-end using packets of data. These begin and end with an escape sequence 
+  and use escape sequences, usually escape followed by comma, to separate the 
+  elements. The opening escape sequence is always escape followed by an upper 
+  case character and the closing sequence is always escape followed by the lower 
+  case version of the opening sequence. For many cases, the format of the packet 
+  is fixed but there is an exception in the case of marked-up text. Marked-up 
+  text can arise in the case of error messages or some other output from the compiler 
+  where extra information can be inserted at arbitrary point within the text of 
+  the message. Such mark-up uses the same format as the protocol packets but the 
+  opening section is delimited by escape followed by semicolon. Having a standard 
+  format provides for upwards compatibility since an IDE can easily skip mark-up 
+  that it does not recognise.</p>
+<h3><font face="Arial, Helvetica, sans-serif">Output mark-up</font></h3>
+<p>Poly/ML can be run in a mode where it produces enhanced output but otherwise 
+  runs a normal top-level. This can be used by the IDE to give the user access 
+  to a normal interactive ML session. The &quot;<font face="Courier New, Courier, mono">--with-marku</font>p&quot; 
+  option to Poly/ML runs the normal Poly/ML top-level loop but causes it to add 
+  mark-up to some of its messages. Currently that is just the location where an 
+  identifier was declared.<br>
+  The format of the starting packet is:<br>
+  ESC 'D' filename ESC ',' startline ESC ',' startlocation ESC ',' endlocation 
+  ESC ';'<br>
+  This is followed by the identifier itself and then the closing packet:<br>
+  ESC 'd'<br>
+  Mark up in the future will follow the same pattern allowing the IDE to skip 
+  unrecognised mark-up. This mark-up is also used in some of the packets within 
+  the full IDE protocol.</p>
+<h3><br>
+  <font face="Arial, Helvetica, sans-serif">Full IDE protocol</font></h3>
+<p> When run with the <font face="Courier New, Courier, mono">--ideprotocol</font> 
+  option the top-level loop runs the full IDE communication protocol. This is 
+  intended primarily for compiling files while they are being edited, either as 
+  the result of an explicit request from the user or automatically. When this 
+  option is given the front-end retains the parse tree and requests can be made 
+  to extract information from the parse tree. Requests are in terms of byte offsets 
+  within the last source text. If the text has been edited since it was last sent 
+  to ML the IDE must convert positions within the current source text into positions 
+  within the original before sending requests to ML and do the reverse conversion 
+  before displaying the results.</p>
+<h4>Requests from IDE to Poly/ML.</h4>
+<p>Simple requests about the current parse tree all have the same format. They 
+  contain a request code that describes the kind of information to return and 
+  a pair of positions. Frequently the start and end positions will be the same. 
+  The front-end searches for the smallest node in the parse tree that spans the 
+  positions and returns information about that node. It always retains the actual 
+  span for the node in the result so that the IDE can highlight the actual text 
+  in the display.</p>
+<p>The format of a request packet is:<br>
+  ESC CODE startoffset ESC ',' endoffset ESC code<br>
+  The start character is an upper case character, the end character the corresponding 
+  lower case character.<br>
+  The CODE is, currently, one of the following</p>
+<table width="43%" border="0">
+  <tr>
+    <td width="11%">O</td>
+    <td width="89%">Return a list of properties for the node</td>
+  </tr>
+  <tr>
+    <td>T</td>
+    <td>Return type information</td>
+  </tr>
+  <tr>
+    <td>I</td>
+    <td>Return declaration location</td>
+  </tr>
+  <tr>
+    <td>U</td>
+    <td>Move to the parent node</td>
+  </tr>
+  <tr>
+    <td>C</td>
+    <td>Move to the first child node</td>
+  </tr>
+  <tr>
+    <td>N</td>
+    <td>Move to the next sibling</td>
+  </tr>
+  <tr>
+    <td>P</td>
+    <td>Move to the previous sibling</td>
+  </tr>
+</table>
+<h4>Responses from Poly/ML to the IDE</h4>
+<p> Responses follow a similar structure to the request. The start and end code 
+  for a response is the same as the start and end for the request. All responses 
+  contain the actual start and end points of the current tree. If there is no 
+  parse tree the start and end offsets will be zero. An unrecognised command will 
+  return an empty response for forwards compatibility. Where a command is invalid 
+  or unrecognised the response will be<br>
+  ESC CODE startoffset ESC ',' endoffset ESC code</p>
+<p>O Request : ESC 'O' startoffset ESC ',' endoffset ESC ',' commands ESC 'o'<br>
+  The commands are a list of the valid commands (i.e. OTIUCNP). For forward compatibility 
+  the IDE should accept but ignore other characters.<br>
+  T Request : ESC 'T' startoffset ESC ',' endoffset ESC ',' typestring ESC 't'<br>
+  Returns the type of the selected node as a string. There is no currently mark 
+  up in the type. If this is not an expression this returns ESC 'T' startoffset 
+  ESC ',' endoffset ESC 't'</p>
+<p>I Request : ESC 'I' startoffset ESC ',' endoffset ESC ',' filename ESC ',' 
+  startline ESC ',' startlocation ESC ',' endlocation ESC 'i'<br>
+  The first two locations as usual indicate the position of the use of the identifier. 
+  The remaining information relates to the declaration. Returns ESC 'I' startoffset 
+  ESC ',' endoffset ESC 'i' if this is not an identifier. The information is similar 
+  to a D block in mark-up</p>
+<p>U, C, N, P requests : ESC CHAR startoffset ESC ',' endoffset ESC char </p>
+<h4><br>
+  Compilation.</h4>
+<p>In order to compile a piece of text the IDE sends it to ML through the protocol. 
+  Because any previous compilation may have executed code and affected the global 
+  state it is assumed that the IDE will set up some form of context for the file 
+  by previously saving some state. Typically, this would require it to have compiled 
+  all the files that this particular piece of source text will depend on and to 
+  have saved it in a saved state. A compilation request therefore has the following 
+  structure: <br>
+  ESC 'R' loadfile ESC ',' sourcename ESC ',' startposition ESC ',' source ESC 
+  'r'<br>
+  'loadfile' is the name of a saved state file. An empty string means that no 
+  file will be loaded.<br>
+  'sourcename' is the name to be used as the file name when reporting locations.<br>
+  'startposition' is the value to be used as the initial offset in the file. The 
+  usual case is that this is zero or null string which is taken as zero.</p>
+<p>Poly/ML responds with a result block. The result block consists of<br>
+  ESC 'R' result ESC ',' finaloffset errors ESC-r (N.B. No separator after 'finalposition').<br>
+  &quot;result&quot; is a single character indicating success or failure.<br>
+  'finalposition' is the byte position after the last character that was read. 
+  If there was an error this may be less than the end of the input.<br>
+  S - Success. File compiled successfully.<br>
+  L - Loading the saved state failed. No other error messages will be produced.<br>
+  F - Failure in type checking.<br>
+  P - Parse failure.<br>
+  If the result is L or P the parse tree will not have been updated. If the result 
+  is S or F the parse tree will have been updated. In the case of a result of 
+  F the parse tree may not reflect the whole file if the file contains multiple 
+  topdecs.</p>
+<p>&quot;errors&quot; is a list a of zero or more error packets. An error packet 
+  consists of<br>
+  ESC 'E' kind ESC ',' startPosition ESC ',' endPosition ESC ',' message ESC 'e'<br>
+  &quot;kind&quot; is either 'E' indicating a hard error or 'W' indicating a non-fatal 
+  warning. 'message' is a piece of text that may include output mark-up e.g. if 
+  it contains identifiers.<br>
+</p>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+
+<head>
+<title>Using Poly/ML - Chapter 5: Processes</title>
+</head>
+
+<body>
+
+<h1><font SIZE="6"><a name="Processes5">Chapter 5: Processes</a></font></h1>
+
+<p>As from Poly/ML version 5.1 parallelism is provided through the <a href="/docs/Threads.html">Thread</a> 
+  structure. The Process structure is provided for backwards compatibility only.</p>
+<p><font SIZE="3">This chapter describes Poly/ML's non-standard extensions for 
+  handling lightweight processes. The process model used is based on Milner's 
+  CCS. The structure </font><b><font FACE="Courier" SIZE="3">Process</font></b><font SIZE="3"> 
+  contains the following:</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">type 'a channel<br>
+val channel : unit -&gt; 'a channel<br>
+val send : 'a channel * 'a -&gt; unit<br>
+val receive : 'a channel -&gt; 'a</font></b></p>
+
+<p><b><font FACE="Courier" SIZE="3">val fork : (unit -&gt; unit) -&gt; unit<br>
+val console : (unit -&gt; unit) -&gt; unit -&gt; unit<br>
+val choice : (unit -&gt; unit) * (unit -&gt; unit) -&gt; unit</font></b></p>
+
+<p><strong><font face="Courier">val interruptConsoleProcesses : unit -&gt; unit</font></strong></p>
+
+<p><b><font FACE="Courier" SIZE="3">channel ()</font></b><font SIZE="3"> creates a new,
+unbuffered, channel.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">send (c,x)</font></b><font SIZE="3"> writes the value </font><b><font FACE="Courier" SIZE="3">x</font></b><font SIZE="3"> to the channel </font><b><font FACE="Courier" SIZE="3">c</font></b><font SIZE="3">. Since channels are unbuffered, the
+writing process is suspended until another process attempts to read from the channel </font><b><font FACE="Courier" SIZE="3">c</font></b><font SIZE="3">.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>read c</b></font><font SIZE="3"> reads a value from
+the channel </font><b><font FACE="Courier" SIZE="3">c</font></b><font SIZE="3"> and
+returns it. If no value is currently available on </font><font FACE="Courier" SIZE="3"><b>c</b></font><font SIZE="3">,<b> </b>the reading process is suspended until another process attempts to write
+to that channel.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>fork f </b></font><font SIZE="3">creates a new process
+and executes the function call </font><b><font FACE="Courier" SIZE="3">f ()</font></b><font SIZE="3"> in it. The new process will not receive console interrupts i.e. typing </font><b><font FACE="Courier" SIZE="3">&lt;control-C&gt; f</font></b><font SIZE="3"> will not raise the
+exception </font><b><font FACE="Courier" SIZE="3">Interrupt</font></b><font SIZE="3"> in
+that process.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">console f</font></b><font SIZE="3"> is like </font><font FACE="Courier" SIZE="3"><b>fork f </b></font><font SIZE="3">except that the new process
+will be a console process. Typing </font><b><font FACE="Courier" SIZE="3">&lt;control-C&gt;
+f </font></b><font SIZE="3">will raise the exception </font><b><font FACE="Courier" SIZE="3">Interrupt</font></b><font SIZE="3"> in all console processes but doesn't raise
+this exception in non-console processes. In addition, calling </font><b><font FACE="Courier" SIZE="3">console f</font></b><font SIZE="3"> returns a function of type </font><font FACE="Courier" SIZE="3"><b>unit -&gt; unit</b></font><font SIZE="3">. Calling this
+function will raise the </font><b><font FACE="Courier" SIZE="3">Interrupt</font></b><font SIZE="3"> exception in the new process only. This provides a more selective way to kill
+aberrant processes.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>choice (f g) </b></font><font SIZE="3">is a way to
+implement the choice primitive of CCS. It creates two processes which execute </font><b><font FACE="Courier" SIZE="3">f()</font></b><font SIZE="3"> and </font><b><font FACE="Courier" SIZE="3">g()</font></b><font SIZE="3"> respectively. However, these two processes are not
+independent: only one of them will be allowed to perform channels actions (sends and
+receives). As soon as one process successfully performs a channel action, the other
+process will block forever as soon as it attempts a send or receive. This relationship is
+also inherited by child processes; if <i>any</i> child process of </font><font FACE="Courier" SIZE="3"><b>f </b></font><font SIZE="3">performs a channel action then all
+child processes of </font><b><font FACE="Courier" SIZE="3">g</font></b><font SIZE="3">
+will block. This behaviour allows calls of the function </font><b><font FACE="Courier" SIZE="3">choice</font></b><font SIZE="3"> to be nested in order to create multiple-choice
+decision points.</font></p>
+
+<p><strong><font face="Courier">interruptConsoleProcesses</font></strong>&nbsp; raises <b><font FACE="Courier" SIZE="3">Interrupt</font></b> in all console processes.&nbsp; It is
+equivalent to <font SIZE="3">typing </font><b><font face="Courier" size="3">&lt;control-C&gt;
+f</font></b><font size="3">.</font></p>
+
+<p><font size="2"><b>Copyright (c) 2000 CUTS and contributers.&nbsp;</b></font></p>
+</body>
+</html>

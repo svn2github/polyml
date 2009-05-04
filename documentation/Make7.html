@@ -1,0 +1,213 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+
+<head>
+<title>Using Poly/ML - Chapter 7: The Poly/ML Make System</title>
+</head>
+
+<body>
+
+<h1><font SIZE="6"><a name="MakeSystem7">Chapter 7: The Poly/ML Make System</a></font></h1>
+
+<h2><b><font SIZE="4"><a name="Intro7.1">7.1 Introduction</a></font></b></h2>
+
+<p><font FACE="Courier" SIZE="3">PolyML.make</font><font SIZE="3"> is a function to help
+maintain consistency of programs made up of several modules. </font><b><font FACE="Courier" SIZE="3">PolyML.make</font></b><font SIZE="3"> works on modules (files
+containing functors, structures and signatures) and tries to ensure that a module is
+consistent with respect to the modules it uses.</font></p>
+
+<p><font SIZE="3">The Poly/ML compiler has two modes of operation: normal mode and 'make'
+mode. When the compiler is operating in 'make' mode and it encounters the name of a
+functor, structure or signature, it determines whether it is necessary to remake that
+object from its source code. It addition, the variable </font><b><font FACE="Courier" SIZE="3">PolyML.Compiler.useRCS</font></b><font SIZE="3"> controls whether </font><b><font FACE="Courier" SIZE="3">make</font></b><font SIZE="3"> attempts to invoke the popular GNU
+RCS system.</font></p>
+
+<h2><b><font SIZE="4"><a name="Non-RCS7.2">7.2 Non-RCS mode</a></font></b></h2>
+
+<p><font SIZE="3">When the variable </font><b><font FACE="Courier" SIZE="3">PolyML.Compiler.useRCS</font></b><font SIZE="3"> is set to </font><font FACE="Courier" SIZE="3"><b>false</b></font><font SIZE="3">,
+the make system operates in non-RCS mode. (This was the standard mode for releases of the
+Poly/ML system prior to version 3.0.)</font></p>
+
+<p><font SIZE="3">The make system assumes that source code for functors, structures and
+signatures is kept in files whose names resemble those of the objects. The variable </font><b><font FACE="Courier" SIZE="3">PolyML.Compiler.suffixes</font></b><font SIZE="3"> contains the
+list of filename suffixes recognised by the make system, in the order that the system
+tries them. The default list is </font><font FACE="Courier" SIZE="3"><b>[&quot;&quot;,
+&quot;.ML&quot;, &quot;.sml&quot;]</b></font><font SIZE="3">.</font></p>
+
+<p><font SIZE="3">For example, if the object is called '<i>name</i>', the system first
+tries to find a file called <em>name</em>, then tries <i>name</i>.<b>ML, </b>and finally
+tries <i>name</i>.<b>sml </b>if neither of the other files exists. Alternatively, '<i>name</i>'
+may be a Unix directory containing a file called '</font><font FACE="Courier" SIZE="3"><b>ml_bind.ML</b></font><font SIZE="3">'. If the make system fails to find any matching file then it assumes the object
+is pervasive and will use the existing version of it.</font></p>
+
+<h2><b><font SIZE="4"><a name="RCSmode7.3">7.3 RCS mode</a></font></b></h2>
+
+<p><font SIZE="3">When the variable </font><b><font FACE="Courier" SIZE="3">PolyML.Compiler.useRCS</font></b><font SIZE="3"> is set to </font><font FACE="Courier" SIZE="3"><b>true</b></font><font SIZE="3">,
+the make system operates in RCS mode. If you haven't installed the GNU RCS system, or you
+don't like the following behaviour, simply set </font><b><font FACE="Courier" SIZE="3">PolyML.Compiler.useRCS</font></b><font SIZE="3"> to </font><font FACE="Courier New" SIZE="3"><b>false</b></font><font SIZE="3">.</font></p>
+
+<p><font SIZE="3">When the make system is operating in RCS mode and requires a file called
+'<i>file</i>', it will also accept a file called '<i>file</i></font><font FACE="Courier" SIZE="3"><b>,v</b></font><font SIZE="3"><i>'</i> or '</font><font FACE="Courier" SIZE="3"><b>RCS/</b></font><font SIZE="3"><i>file</i></font><font FACE="Courier" SIZE="3"><b>,v</b></font><font SIZE="3">'<b>.
+</b>If the primary file doesn't exist but one of the RCS '</font><font FACE="Courier" SIZE="3"><b>,v</b></font><font SIZE="3">' files is present, the make system will invoke
+the RCS check-out program </font><font FACE="Courier" SIZE="3"><b>co</b></font><font SIZE="3">, to create the primary file. (You must have write permission in the source
+directory for this to work properly.) Once the file has been compiled, the make system
+will then use </font><b><font FACE="Courier" SIZE="3">rm</font></b><font SIZE="3"> to
+restore the file system to its original state.</font></p>
+
+<p><font SIZE="3"><strong>Note</strong>: The Poly/ML system makes the reasonable
+assumption that if you have <font FACE="Courier" SIZE="3"><b>PolyML.Compiler.useRCS</b></font>
+set and your file system contains '<font FACE="Courier" SIZE="3"><b>,v'</b></font> files,
+then you must have co in your standard search path. If this isn't true, then make will
+fail unpredictably.</font></p>
+
+<p><font SIZE="3"><b>Note: </b>the system tries each '</font><font FACE="Courier" SIZE="3">,<b>v</b></font><font SIZE="3">' variant of each suffix before trying the next suffix. This means that (with the
+default suffix list) <i>name</i>.</font><font FACE="Courier" SIZE="3"><b>ML,v</b></font><font SIZE="3"> would take precedence over <i>name</i></font><font FACE="Courier" SIZE="3"><b>.sml.</b></font></p>
+
+<h2><a name="Example7.4"><font SIZE="4"><b>7.4 Example</b></font></a></h2>
+
+<p><font SIZE="3">For example, suppose we have a system in which the structure </font><b><font FACE="Courier" SIZE="3">Sort</font></b><font SIZE="3"> is created by applying the functor </font><b><font FACE="Courier" SIZE="3">SORT</font></b><font SIZE="3"> to the structures </font><b><font FACE="Courier" SIZE="3">Combinator</font></b><font SIZE="3"> and </font><b><font FACE="Courier" SIZE="3">List</font></b><font SIZE="3"> and that </font><b><font FACE="Courier" SIZE="3">Combinator</font></b><font SIZE="3"> is itself created by applying
+the functor </font><b><font FACE="Courier" SIZE="3">COMBINATOR</font></b><font SIZE="3">
+to the structure </font><font FACE="Courier New" SIZE="3"><b>List</b></font><font SIZE="3">.</font></p>
+
+<p><font SIZE="3">To use the make system, we would create a directory </font><b><font FACE="Courier" SIZE="3">Sort</font></b><font SIZE="3"> with subdirectory </font><b><font FACE="Courier" SIZE="3">Sort/Combinator</font></b><font SIZE="3"> and the following files:</font></p>
+
+<table BORDER="1" CELLSPACING="1" CELLPADDING="7" WIDTH="572">
+  <tr>
+    <td WIDTH="303" VALIGN="top"><font SIZE="3"><b>File</b></font></td>
+    <td WIDTH="233" VALIGN="TOP"><font SIZE="3"><b>Contents</b></font></td>
+  </tr>
+  <tr>
+    <td WIDTH="303" VALIGN="TOP"><font FACE="Courier" SIZE="3"><b>Sort/List.ML</b></font></td>
+    <td WIDTH="233" VALIGN="TOP"><font SIZE="3">Code for structure </font><font FACE="Courier" SIZE="3"><b>List</b></font></td>
+  </tr>
+  <tr>
+    <td WIDTH="303" VALIGN="TOP"><font FACE="Courier" SIZE="3"><b>Sort/Combinator/COMBINATOR.ML</b></font></td>
+    <td WIDTH="233" VALIGN="TOP"><font SIZE="3">Code for functor </font><font FACE="Courier" SIZE="3"><b>COMBINATOR</b></font></td>
+  </tr>
+  <tr>
+    <td WIDTH="303" VALIGN="TOP"><font FACE="Courier" SIZE="3"><b>Sort/Combinator/ml_bind.ML</b></font></td>
+    <td WIDTH="233" VALIGN="TOP"><font SIZE="3">Code to create </font><font FACE="Courier" SIZE="3"><b>Combinator</b></font></td>
+  </tr>
+  <tr>
+    <td WIDTH="303" VALIGN="TOP"><font FACE="Courier" SIZE="3"><b>Sort/SORT.ML</b></font></td>
+    <td WIDTH="233" VALIGN="TOP"><font SIZE="3">Code for functor </font><font FACE="Courier" SIZE="3"><b>SORT</b></font></td>
+  </tr>
+  <tr>
+    <td WIDTH="303" VALIGN="TOP"><font FACE="Courier" SIZE="3"><b>Sort/ml_bind.ML</b></font></td>
+    <td WIDTH="233" VALIGN="TOP"><font SIZE="3">Code to create </font><font FACE="Courier" SIZE="3"><b>Sort</b></font></td>
+  </tr>
+</table>
+
+<p><font SIZE="3">These files should have the following format:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>Sort/List.ML</b></font></p>
+
+<blockquote>
+  <blockquote>
+    <p><font FACE="Courier" SIZE="3"><b>structure List =<br>
+    struct (* body of List *) end;</b></font></p>
+  </blockquote>
+</blockquote>
+
+<p><font FACE="Courier" SIZE="3"><b>Sort/Combinator/COMBINATOR.ML</b></font></p>
+
+<blockquote>
+  <blockquote>
+    <p><font FACE="Courier" SIZE="3"><b>signature LSIG =<br>
+    sig (* body of LSIG, as used by COMBINATOR *) end;</b></font></p>
+    <p><font FACE="Courier" SIZE="3"><b>functor COMBINATOR(structure L : LSIG) =<br>
+    struct (* body of COMBINATOR *) end;</b></font></p>
+  </blockquote>
+</blockquote>
+
+<p><font FACE="Courier" SIZE="3"><b>Sort/Combinator/ml_bind.ML</b></font></p>
+
+<blockquote>
+  <blockquote>
+    <p><font FACE="Courier" SIZE="3"><b>structure Combinator =<br>
+    COMBINATOR(structure L = List);</b></font></p>
+  </blockquote>
+</blockquote>
+
+<p><font FACE="Courier" SIZE="3"><b>Sort/SORT.ML</b></font></p>
+
+<blockquote>
+  <blockquote>
+    <p><font FACE="Courier" SIZE="3"><b>signature CSIG =<br>
+    sig (* body of CSIG *) end;</b></font></p>
+    <p><font FACE="Courier" SIZE="3"><b>signature LSIG</b> <b>=<br>
+    sig (* body of LSIG, as used by SORT *) end;</b></font></p>
+    <p><font FACE="Courier" SIZE="3"><b>functor SORT (structure C : CSIG structure L : LSIG) =<br>
+    struct<br>
+    (* body of SORT *)<br>
+    end;</b></font></p>
+  </blockquote>
+</blockquote>
+
+<p><font FACE="Courier" SIZE="3"><b>Sort/ml_bind.ML</b></font></p>
+
+<blockquote>
+  <blockquote>
+    <p><font FACE="Courier" SIZE="3"><b>structure Sort =<br>
+    SORT(structure L = List structure C = Combinator);</b></font></p>
+  </blockquote>
+</blockquote>
+
+<p><font SIZE="3">The first time we use </font><b><font FACE="Courier" SIZE="3">PolyML.make
+&quot;Sort&quot;</font></b><font SIZE="3">,<b> </b>Poly/ML will enter 'make' mode and
+compile and bind (as appropriate) all the above modules.</font></p>
+
+<p><font SIZE="3">If we edit the file </font><b><font FACE="Courier" SIZE="3">Sort/Combinator/COMBINATOR.ML</font></b><font SIZE="3">, then we need to recompile </font><b><font FACE="Courier" SIZE="3">COMBINATOR</font></b><font SIZE="3">, rebind </font><b><font FACE="Courier" SIZE="3">Combinator</font></b><font SIZE="3"> and rebind </font><font FACE="Courier" SIZE="3"><b>Sort </b></font><font SIZE="3">(in that order). This is precisely what </font><b><font FACE="Courier" SIZE="3">PolyML.make
+&quot;Sort&quot;</font></b><font SIZE="3"> will do. There is no need to recompile the
+structure </font><b><font FACE="Courier" SIZE="3">List</font></b><font SIZE="3"> or the
+functor </font><font FACE="Courier" SIZE="3"><b>SORT</b></font><font SIZE="3">, since
+neither of these is affected by the change to </font><font FACE="Courier" SIZE="3"><b>COMBINATOR</b></font><font SIZE="3">.</font></p>
+
+<p><font SIZE="3">On the other hand, if we edit </font><b><font FACE="Courier" SIZE="3">Sort/SORT.ML</font></b><font SIZE="3"> then we only need to recompile the functor </font><b><font FACE="Courier" SIZE="3">SORT</font></b><font SIZE="3"> then rebind the structure </font><font FACE="Courier" SIZE="3"><b>Sort</b></font><font SIZE="3">. Again, this is precisely what </font><b><font FACE="Courier" SIZE="3">PolyML.make &quot;Sort&quot;</font></b><font SIZE="3"> does for
+us.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">PolyML.make</font></b><font SIZE="3"> works using
+'dependency lists'. Here the structure </font><b><font FACE="Courier" SIZE="3">Sort</font></b><font SIZE="3"> depends on </font><font FACE="Courier" SIZE="3"><b>SORT</b></font><font SIZE="3">,
+</font><b><font FACE="Courier" SIZE="3">List</font></b><font SIZE="3"> and </font><b><font FACE="Courier" SIZE="3">Combinator</font></b><font SIZE="3"> while the structure </font><b><font FACE="Courier" SIZE="3">Combinator</font></b><font SIZE="3"> depends on </font><b><font FACE="Courier" SIZE="3">COMBINATOR</font></b><font SIZE="3"> and </font><font FACE="Courier" SIZE="3"><b>List</b></font><font SIZE="3">.</font></p>
+
+<p><font SIZE="3">Each time the make system is invoked, it uses information stored from
+the previous call to find the dependencies of each functor, structure or signature. The
+file modification time of each dependent is compared with the time the corresponding
+database object was created to determine which objects need to be recreated.</font></p>
+
+<p><font SIZE="3"><b>Notes:</b></font> 
+
+<ul>
+  <li><font SIZE="3">There may be problems if Poly/ML is run on a different machine from the
+    one holding the source files if the clocks on the two machines are not properly in
+    synchronisation.</font></li>
+</ul>
+
+<ul>
+  <li><font SIZE="3">The order of compilation will be different depending on which files are
+    out of date. The code should not<b> </b>contain any assumptions about the order of
+    compilation.</font></li>
+</ul>
+
+<ul>
+  <li><b><font FACE="Courier" SIZE="3">PolyML.make</font></b><font SIZE="3"> uses extra
+    information stored in the database. This information is not changed by </font><b><font FACE="Courier" SIZE="3">PolyML.use</font></b><font SIZE="3"> or if a declaration is typed
+    at the terminal.</font></li>
+</ul>
+
+<ul>
+  <li><font SIZE="3">Although ML deals correctly with structures, signatures and functors with
+    the same name they cannot be distinguished by the filing system so different names must be
+    used.</font></li>
+</ul>
+
+<ul>
+  <li><font SIZE="3">The dependency lists used by </font><b><font FACE="Courier" SIZE="3">PolyML.make</font></b><font SIZE="3"> may be printed out using </font><b><font FACE="Courier" SIZE="3">PolyML.depends</font></b><font SIZE="3">. For example:</font><br>
+    <font FACE="Courier" SIZE="3"><b>PolyML.depends &quot;Combinator&quot;;<br>
+    </b></font><font SIZE="3">will print out the dependency list for </font><b><font FACE="Courier" SIZE="3">Combinator</font></b><font SIZE="3"> plus the time it was last
+    made.</font></li>
+</ul>
+
+<p><font size="2"><b>Copyright (c) 2000 CUTS and contributers.&nbsp;</b></font></p>
+</body>
+</html>

@@ -1,0 +1,453 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+
+<head>
+<title>Using Poly/ML - Chapter 1: Introduction</title>
+</head>
+
+<body>
+
+<h1><font SIZE="6"><a name="Intro1">Chapter 1: Introduction</a></font></h1>
+<p>This document describes Poly/ML version 4 and older. Certain features are significantly 
+  different in version 5, particularly the persistent store which has been removed.</p>
+
+<p><font SIZE="3">Poly/ML is an implementation of Standard ML, with a few non-standard
+extensions such as <a href="VectorArray4.html">arrays</a>, <a href="Processes5.html">processes</a>,
+a <a href="Make7.html">make system</a> and the fact that ML values may become '<a href="#persist1.6">persistent</a>'.</font></p>
+
+<h2><a name="structurePolyML1.1"><font SIZE="4">1.1 The structure</font><b><font FACE="Courier" SIZE="4">PolyML</font></b></a></h2>
+
+<p><font SIZE="3">Most non-standard system-level functions are held in the structure </font><b><font FACE="Courier" SIZE="3">PolyML</font></b><font SIZE="3">.<b> </b>This structure contains
+at least the following functions:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val commit: unit-&gt; bool<br>
+val quit: unit -&gt; unit<br>
+val exit: int -&gt; unit<br>
+val use: string -&gt; unit<br>
+val cd: string -&gt; unit</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val isLogging: unit -&gt; bool<br>
+val startLog: string -&gt; unit<br>
+val restartLog: string -&gt; unit<br>
+val stopLog: unit -&gt; unit<br>
+val logName: unit -&gt; string<br>
+val writeLog: string -&gt; unit</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val exception_trace: (unit -&gt; a) -&gt; 'a</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val print_depth: int -&gt; unit</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val error_depth: int -&gt; unit</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val timing: bool -&gt; unit<br>
+val profiling: int -&gt; unit</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val make-database : string -&gt; unit</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val make: string unit<br>
+val depends: string unit</b></font></p>
+
+<p><font SIZE="3">The purpose of the above functions is explained in the following
+sections except for </font><b><font FACE="Courier" SIZE="3">make</font></b><font SIZE="3">
+and </font><b><font FACE="Courier" SIZE="3">depends</font></b><font SIZE="3"> which are
+discussed in <a href="Make7.html">chapter 7</a>.</font></p>
+
+<p><font SIZE="3">In addition, the Motif Edition of Poly/ML supports the X Windows System.
+The functions which provide the Poly/ML interface to X are encapsulated in the structures <b>XWindows
+</b>and <b>Motif </b>which, because of their size and importance, are described in
+separate manuals.</font></p>
+
+<h2><a name="startsession1.2"><b><font SIZE="4">1.2 Starting a Poly/ML session</font></b></a></h2>
+
+<p><font SIZE="3">You start a Poly/ML session by running the driver program </font><b><font FACE="Courier" SIZE="3">poly</font></b><font SIZE="3"> with your Poly/ML database:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>unix% poly ML_dbase</b></font></p>
+
+<p><font SIZE="3">This should produce (something like) the response:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>Poly/ML RTS version Windows<br>
+Copyright (c) 1999 Cambridge University Technical Services Limited<br>
+Poly/ML 3.X<br>
+&gt;</b></font></p>
+
+<p><font SIZE="3">(&#145;</font><strong><font FACE="Courier" SIZE="3">&gt;</font></strong><font SIZE="3">&#146; is the default Poly/ML prompt.) You can now enter an ML program, for
+example:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>&gt; fun fact 0 = 1<br>
+# | fact n = n * fact(n-1);<br>
+</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val fact = fn : int -&gt; int</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>&gt; fact 20;<br>
+val it = 2432902008176640000 : int</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>&gt;</b></font></p>
+
+<p><font SIZE="3">(&#145;<strong><font face="Courier">#</font></strong>&#146; is the
+default Poly/ML secondary prompt, which is used whenever the current expression is
+incomplete.) The Poly/ML system may take slightly longer than normal to respond to the
+first thing you type; this is because the ML compiler is itself a collection of persistent
+objects which have to be paged into memory before they can be used.</font></p>
+
+<h2><a name="updatedb1.3"><font SIZE="4">1.3 Updating the Database</font></a></h2>
+
+<p><font SIZE="3">The database can be updated from the local heap with</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>PolyML.commit ();</b></font></p>
+
+<p><font SIZE="3">All changes to the local heap since the last commit (or since the start
+of the session, if there was no previous commit) are written out to the database, making
+them permanent. See section 1.6, below, for a more detailed explanation of this. The
+function </font><b><font FACE="Courier" SIZE="3">commit</font></b><font SIZE="3"> returns
+a bool; this is </font><b><font FACE="Courier" SIZE="3">true</font></b><font SIZE="3"> in
+the initial Poly/ML session - the one in which </font><b><font FACE="Courier" SIZE="3">commit</font></b><font SIZE="3"> was called - but is </font><font FACE="Courier" SIZE="3"><b>false</b></font><font SIZE="3"> in any subsequent Poly/ML session started using the saved database.</font></p>
+
+<h2><a name="quitting1.4"><font SIZE="4"><b>1.4 Quitting a Poly/ML session</b></font></a></h2>
+
+<p><font SIZE="3">You can quit the Poly/ML session without updating the database by:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>PolyML.quit ();</b></font></p>
+
+<p><font SIZE="3">As this does not update the database, all work done since the last
+commit will be lost. Alternatively, typing</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>&lt;control-D&gt;</b></font></p>
+
+<p><font SIZE="3">(or whatever is the local end-of-file indicator) performs a commit, then
+quits the current Poly/ML session.</font></p>
+
+<p><font SIZE="3">If you are running Poly/ML as part of a Unix batch job, it may be useful
+to set the Unix return code when quitting Poly/ML. This can be done using</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>PolyML.exit n;</b></font></p>
+
+<p><font SIZE="3">where <b>n </b>is an integer. This quits the Poly/ML session, without
+updating the database, and sets the Unix return code to <b>n</b> <b>mod 256</b></font></p>
+
+<p><b><font SIZE="3">Note: </font><font FACE="Courier" SIZE="3">PolyML.quit()</font></b><font SIZE="3"> is the same as </font><b><font FACE="Courier" SIZE="3">PolyML.exit 0</font></b><font SIZE="3"> but has been retained for backwards compatibility with previous versions of
+Poly/ML.</font></p>
+
+<h2><a name="including1.5"><font SIZE="4"><b>1.5 Including files </b></font></a></h2>
+
+<p><font SIZE="3">You can include pieces of ML program from external files using <b>PolyML.
+use:</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>PolyML.use &quot;myfile&quot;;</b></font></p>
+
+<p><font SIZE="3">This will attempt to read the file </font><b><font FACE="Courier New" SIZE="3">myfile</font></b><font SIZE="3">. If </font><b><font SIZE="3" face="Courier">myfile</font></b><font SIZE="3"> does not exist, it will read </font><b><font SIZE="3" face="Courier">myfile.ML</font></b><font SIZE="3"> instead (and if that doesn't exist, it will try </font><font SIZE="3" face="Courier"><b>myfile.sml</b></font><font SIZE="3">). Included files may also contain
+nested calls to </font><font SIZE="3" face="Courier"><b>use</b></font><font SIZE="3">.
+File names are interpreted with respect to the current working directory. Initially, the
+current working directory is the same as the Unix directory in which the Poly/ML session
+was started. The current working directory may be changed using </font><font SIZE="3" face="Courier"><b>PolyML.cd</b></font><font SIZE="3">, for example:</font></p>
+
+<p><font SIZE="3" face="Courier"><b>PolyML.cd &quot;../examples&quot;;</b></font></p>
+
+<p><font SIZE="3">selects the '</font><font SIZE="3" face="Courier"><b>examples</b></font><font SIZE="3">'<b> </b>subdirectory of the parent directory of the old working directory as the
+new working directory.</font></p>
+
+<h2><a name="persist1.6"><font SIZE="4"><b>1.6 Persistence</b></font></a></h2>
+
+<p><font SIZE="3">Persistence means that values created in one Poly/ML session may be
+accessed in subsequent Poly/ML sessions without the need to explicitly reload them and
+without the need for recompilation.</font></p>
+
+<p><font SIZE="3">When Poly/ML values are initially created, they are transient
+(non-persistent). Transient values are stored in the local heap and vanish at the end of
+the Poly/ML session which created them. By contrast, persistent values are stored in a
+disk file called a database and are accessible by all future Poly/ML sessions. When a
+persistent value is used during a Poly/ML session, it is paged into memory using the Unix
+demand paging mechanism. The function <b>PolyML.commit </b>causes transient values to
+become persistent, by copying them from the local heap to the database.</font></p>
+
+<p><font SIZE="3">If a Poly/ML session attempts to modify a persistent object, the
+database is not updated directly. Instead, a copy of the modified object is made in the
+local heap. This means that the modification itself is transient - the current Poly/ML
+session will use the modified value, but subsequent sessions will see the old value,
+unless the database is updated using <b>PolyML. commit. </b>Once a modification has been
+committed, it is permanent; there is no way to revert to the earlier state of the
+database.</font></p>
+
+<h2><a name="debugging1.7"><font SIZE="4"><b>1.7 Debugging</b></font></a></h2>
+
+<p><font SIZE="3">Occasionally, an ML program will produce an unexpected result. When you
+attempt to discover the reason for this, the first thing you should do is to ensure that
+values are printed in enough detail to be useful. The amount of detail printed can be
+altered by </font><b><font SIZE="3" face="Courier">PolyML.print_depth</font></b><font SIZE="3">. For example</font></p>
+
+<p><font SIZE="3" face="Courier"><b>PolyML.print_depth 10;</b></font></p>
+
+<p><font SIZE="3">will print sub-expressions nested up to 10 levels deep. Setting the
+print depth to 0 disables printing entirely.</font></p>
+
+<p><font SIZE="3">The amount of detail printed in ML compiler error messages and when
+exceptions are raised can be controlled by </font><font FACE="Courier New" SIZE="3"><b>PolyML.error_depth</b></font><font SIZE="3">.<b> </b>For example</font></p>
+
+<p><b><font SIZE="3" face="Courier">PolyML.error_depth 10;</font></b></p>
+
+<p><font SIZE="3">will change the level of detail to 10 (the default is 5).</font></p>
+
+<p><font SIZE="3">If an ML program raises an exception which gets propagated to the top
+level, it may be difficult to discover which function raised the exception. The function </font><b><font SIZE="3" face="Courier">PolyML.exception_trace</font></b><font SIZE="3"> is provided to
+solve this difficulty. For example, if we define</font></p>
+
+<p><font SIZE="3" face="Courier"><b>exception Badfact;<br>
+fun badfact 0 = raise Badfact<br>
+| badfact n = n * badfact(n-1); </b></font></p>
+
+<p><font SIZE="3">and then try to evaluate</font></p>
+
+<p><font SIZE="3" face="Courier"><b>map badfact [1,2,3];</b></font></p>
+
+<p><font SIZE="3">Poly/ML responds with the error message</font></p>
+
+<p><font SIZE="3" face="Courier"><b>Exception- Badfact raised<br>
+Exception failure raised</b></font></p>
+
+<p><font SIZE="3">which doesn't indicate which function is at fault. To discover where the
+exception was raised, we should evaluate</font></p>
+
+<p><font SIZE="3" face="Courier"><b>PolyML.exception_trace(fn () =&gt; map badfact
+[1,2,3]);</b></font></p>
+
+<p><font SIZE="3">which prints a trace of the state of the stack at the time the exception
+was raised:</font></p>
+
+<p><font SIZE="3" face="Courier"><b>Exception trace for exception - Badfact<br>
+ML-badfact<br>
+ML-badfact<br>
+ML-map()<br>
+R<br>
+End of trace<br>
+Exception- Badfact raised<br>
+Exception failure raised</b></font></p>
+
+<p><font SIZE="3">If an ML program appears to be in an infinite loop, it can be
+interrupted by typing</font></p>
+
+<p><font SIZE="3" face="Courier"><b><a name="ControlC"></a>&lt;control-C&gt;</b></font></p>
+
+<p><font SIZE="3">You now have six options, each indicated by typing a single character
+&#146;</font><font SIZE="3" face="Courier"><b>?</b></font><font SIZE="3">&#146;, &#145;</font><font SIZE="3" face="Courier"><b>s</b></font><font SIZE="3">&#146;, &#145;</font><font SIZE="3" face="Courier"><b>t</b></font><font SIZE="3">&#146;, &#145;</font><font SIZE="3" face="Courier"><b>c</b></font><font SIZE="3">&#146;, &#145;</font><font SIZE="3" face="Courier"><b>f</b></font><font SIZE="3">&#146; or &#145;</font><font SIZE="3" face="Courier"><b>q</b></font><font SIZE="3">&#146;<b>. </b>Typing:</font></p>
+
+<p><font SIZE="3" face="Courier"><b>&#145;?&#146;</b></font><font SIZE="3"> lists the
+other five options.</font></p>
+
+<p><b><font SIZE="3" face="Courier">&#145;s&#146;</font></b><font SIZE="3"> switches from
+the current ML shell to the other. The second ML shell is distinguished by having <b>'2&gt;'
+</b>as its prompt. The second shell inherits all declarations from the first shell, but
+any declarations made in it are local. When you are in one shell all processing in the
+other shell is suspended. It is sometimes useful to switch shells to change the value of </font><b><font SIZE="3" face="Courier">PolyML.print_depth</font></b><font SIZE="3"> and then switch
+shells back again to continue.</font></p>
+
+<p><b><font SIZE="3" face="Courier">&#145;t&#146;</font></b><font SIZE="3"> prints a trace
+of the state of the execution stack.</font></p>
+
+<p><b><font SIZE="3" face="Courier">&#145;c&#146;</font></b><font SIZE="3"> allows the
+execution of the program to continue normally.</font></p>
+
+<p><font SIZE="3" face="Courier"><b>&#145;f&#146; </b></font><font SIZE="3">continues the
+execution of the program, but with the exception </font><b><font SIZE="3" face="Courier">Interrupt</font></b><font SIZE="3"> raised. If, as is normally the case, the program doesn't handle this exception,
+the exception will be propagated to the top level and so halt the program.</font></p>
+
+<p><b><font SIZE="3" face="Courier">&#145;q&#146;</font></b><font SIZE="3"> is a last
+resort - it quits the current Poly/ML session without updating the database (i.e. it is
+equivalent to </font><font SIZE="3" face="Courier"><b>PolyML.quit()</b></font><font SIZE="3">).</font></p>
+
+<h2><font SIZE="4"><b><a name="timing1.8"></a>1.8 Timing and Profiling</b></font></h2>
+
+<p><font SIZE="3">Poly/ML has a couple of functions to measure run-time efficiency. The
+first measures the amount of time taken to evaluate each top-level expression.</font></p>
+
+<p><font SIZE="3" face="Courier"><b>PolyML.timing true;</b></font></p>
+
+<p><font SIZE="3">activates the timing facility. The time taken to evaluate each top-level
+ML expression will be printed after the expression's value. Typing</font></p>
+
+<p><font SIZE="3" face="Courier"><b>PolyML.timing false;</b></font></p>
+
+<p><font SIZE="3">cancels this.</font></p>
+
+<p><font SIZE="3">The second function allows more detailed profiling of individual
+functions. Typing </font></p>
+
+<p><b><font SIZE="3" face="Courier">PolyML.profiling 1;</font></b></p>
+
+<p><font SIZE="3">profiles the amount of <b>user time </b>used by each function. Note that
+this figure excludes any <b>system time </b>that may have been used. After each top-level
+expression has been evaluated, a table is printed, showing how many ticks (of a 50 Hz
+clock) were spent inside each function. Typing</font></p>
+
+<p><font SIZE="3" face="Courier"><b>PolyML.profiling 2;</b></font></p>
+
+<p><font SIZE="3">profiles the amount of <b>space </b>used by each function. The table
+printed shows how many words (1 word = 4 bytes) of storage were allocated by each
+function. Profiling for space increases program execution time by a large factor (about
+10) due to the overhead of recording every storage request. Typing</font></p>
+
+<p><font SIZE="3" face="Courier"><b>PolyML.profiling 3;</b></font></p>
+
+<p><font SIZE="3">profiles the number of <b>emulation traps </b>executed to support
+Poly/ML's arbitrary-precision arithmetic. This is important because each emulation trap
+requires the execution of an operating system trap-handler which, on some operating
+systems, may add significantly to the amount of system time used. Finally, typing</font></p>
+
+<p><font SIZE="3" face="Courier"><b>PolyML.profiling 0;</b></font></p>
+
+<p><font SIZE="3">disables the profiling facility.</font></p>
+
+<h2><a name="logging1.9"><font SIZE="4"><b>1.9 Session Logging</b></font></a></h2>
+
+<p><font SIZE="3">Poly/ML provides a session logging facility. When this facility is
+enabled, it records the text of all successful declarations in a user-specified logfile.
+This allows the user to recreate the current environment in a subsequent Poly/ML session
+by compiling the logfile with </font><font SIZE="3" face="Courier"><b>PolyML.use</b></font><font SIZE="3">. By selectively turning the logging facility on and off, it is also possible to
+create a cleaned-up version of the recording.</font></p>
+
+<p><font SIZE="3">A declaration (or command) is successful if</font></p>
+
+<p><font SIZE="3">1. It successfully compiles.</font></p>
+
+<p><font SIZE="3">2. It executes without raising an exception.</font></p>
+
+<p><font SIZE="3">When a declaration has been compiled, the text of that declaration is
+stored in a log buffer. If the execution terminates without raising an exception the log
+buffer is written to the logfile; if not, the buffer is discarded. Executing </font><b><font SIZE="3" face="Courier">PolyML.writeLog</font></b><font SIZE="3"> (see below) will also
+cause the log buffer to be discarded.</font></p>
+
+<p><font SIZE="3" face="Courier"><b>PolyML.isLogging ();</b></font></p>
+
+<p><font SIZE="3">returns <b><font face="Courier">true</font> </b>is session logging is
+currently enabled.</font></p>
+
+<p><font SIZE="3" face="Courier"><b>PolyML.startLog filename;</b></font></p>
+
+<p><font SIZE="3">enables the session logging facility, opening </font><b><font SIZE="3" face="Courier">filename</font></b><font SIZE="3"> as a new logfile. If logging is already
+enabled, it raises the exception </font><b><font SIZE="3" face="Courier">Io &quot;Already
+logging&quot;</font></b><font SIZE="3">.</font></p>
+
+<p><font SIZE="3" face="Courier"><b>PolyML.restartLog filename;</b></font></p>
+
+<p><font SIZE="3">is like </font><font SIZE="3" face="Courier"><b>startLog</b></font><font SIZE="3">,<b> </b>except that it opens </font><b><font SIZE="3" face="Courier">filename</font></b><font SIZE="3"> in append mode, allowing an existing logfile to be extended.</font></p>
+
+<p><font SIZE="3" face="Courier"><b>PolyML.stopLog();</b></font></p>
+
+<p><font SIZE="3">disables the logging facility and closes the currently active logfile.
+If logging is already disabled, it raises the<b> </b>exception </font><b><font SIZE="3" face="Courier">Io &quot;Not logging&quot;</font><font SIZE="3">.</font></b></p>
+
+<p><font SIZE="3" face="Courier"><b>PolyML.logName ();</b></font></p>
+
+<p><font SIZE="3">returns the name of the currently active logfile. If logging is
+currently disabled, it raises the exception </font><font SIZE="3" face="Courier"><b>Io
+&quot;Not logging&quot;</b></font><font SIZE="3">.</font></p>
+
+<p><b><font SIZE="3" face="Courier">PolyML.writeLog commandString;</font></b></p>
+
+<p><font SIZE="3">writes the string </font><b><font SIZE="3" face="Courier">commandString</font></b><font SIZE="3"> to the logfile. If logging is currently disabled, this function has no effect.
+The first call of this function within any top-level declaration also has the effect of
+discarding the temporary log buffer; this means that the current declaration will not be
+recorded in the logfile.</font></p>
+
+<p><font SIZE="3">The reason for this rather unexpected side-effect is to allow
+user-written interactive programs to write logs which allow their actions to be replayed
+in batch-mode. If the command which starts the interactive program were logged, then the
+batch file would require interactive user input. Instead the interactive program should
+use </font><b><font SIZE="3" face="Courier">writeLog</font></b><font SIZE="3"> to output a
+sequence of equivalent batch-mode commands.</font></p>
+
+<h2><a name="remotely1.10"><b><font SIZE="4">1.10 Using Poly/ML remotely</font></b></a></h2>
+
+<p><font SIZE="3">Programs which use the X Window System may run remotely; this means that
+the program may be run on one machine but display its output (with full windowing
+facilities - not just a 'dumb terminal') on a completely different machine.</font></p>
+
+<p><font SIZE="3">For example, suppose we have logged into the machine </font><b><font SIZE="3" face="Courier">modus</font></b><font SIZE="3">, which is running X. Then we could
+run the </font><b><font SIZE="3" face="Courier">baseCalc</font></b><font SIZE="3"> demo
+using</font></p>
+
+<p><b><font SIZE="3" face="Courier">modus% poly ML_dbase<br>
+&gt; PolyML.use &quot;baseCalc&quot;;</font></b></p>
+
+<p><font SIZE="3">which will pop-up a desk calculator widget, written in Poly/ML, using
+the </font><b><font SIZE="3" face="Courier">modus</font></b><font SIZE="3"> display. This
+runs the demo <i>locally.</i></font></p>
+
+<p><font SIZE="3">Note: if </font><b><font SIZE="3" face="Courier">modus</font></b><font SIZE="3"> is not running X, then running the demo will raise an exception.</font></p>
+
+<p><font SIZE="3">Now suppose that we are sitting in front of </font><b><font SIZE="3" face="Courier">modus</font></b><font SIZE="3"> but want to run Poly/ML on </font><b><font SIZE="3" face="Courier">ponens</font></b><font SIZE="3">. First we have to log into <b>ponens
+</b>and set the </font><b><font FACE="Courier New" SIZE="3">DISPLAY</font></b><font SIZE="3"> variable to tell X that we want our output to appear on </font><b><font FACE="Courier" SIZE="3">modus</font></b><font SIZE="3">.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>modus% rlogin ponens<br>
+ponens% setenv DISPLAY modus:0.0</b></font></p>
+
+<p><font SIZE="3">If we now run the </font><b><font FACE="Courier" SIZE="3">baseCalc</font></b><font SIZE="3"> demo on </font><b><font FACE="Courier" SIZE="3">ponens</font></b><font SIZE="3">,
+the calculator widget will appear on </font><font FACE="Courier" SIZE="3"><b>modus</b></font><font SIZE="3">; we are running the demo remotely.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>ponens% poly ML_dbase<br>
+&gt; PolyML.use &quot;baseCalc&quot;;</b></font></p>
+
+<p><font SIZE="3">Try it!</font></p>
+
+<h2><font SIZE="4"><b><a name="flags1.11">1.11 Flags</a></b></font></h2>
+
+<p><font SIZE="3">The Poly/ML driver program </font><b><font FACE="Courier" SIZE="3">poly</font></b><font SIZE="3"> accepts several flags from the Unix command line. Typing</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>unix% poly</b></font></p>
+
+<p><font SIZE="3">(with no database supplied) will print out a complete list of the
+available flags. The most important of these are the <b>-r </b>flag and the <b>-h </b>flag.
+Using the <b>-r </b>flag sets read-only mode. For example:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>unix% poly -r ML_dbase</b></font></p>
+
+<p><font SIZE="3">will start Poly/ML using </font><b><font FACE="Courier" SIZE="3">ML_dbase</font></b><font SIZE="3">, but will not allow </font><b><font FACE="Courier" SIZE="3">PolyML.commit</font></b><font SIZE="3"> to update the database. Using the <b>-h </b>flag changes the maximum local heap
+size allowed in Poly/ML. For example: </font></p>
+
+<p><b><font FACE="Courier" SIZE="3">unix% poly -h 5000 ML_dbase </font></b></p>
+
+<p><font SIZE="3">will prevent the local heap from growing larger than 5000K bytes. The
+default (if no </font><b><font FACE="Courier" SIZE="3">-h</font></b><font SIZE="3"> flag
+is present) is to allow a maximum local heap size of 6144K. See <a href="HeapParms9.html">chapter
+9</a> for a discussion of the heap flags.</font></p>
+
+<p><font SIZE="3">Using the </font><b><font FACE="Courier" SIZE="3">-noDisplay</font></b><font SIZE="3"> flag runs Poly/ML in non-X mode, disabling the X interface. When Poly/ML is run
+in non-X mode, any X call will raise the exception </font><b><font FACE="Courier" SIZE="3">XWindows.XWindows</font><font SIZE="3">.</font></b></p>
+
+<h3><a name="discgarb1.12"><font SIZE="4"><b>1.12 The disc garbage collector</b></font></a></h3>
+
+<p><font SIZE="3">Each update to the database increases its size, even if fewer 
+  objects are accessible than before the update. The solution to this problem 
+  is to run poly with the -d option.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>unix% poly -d ML_dbase</b></font></p>
+
+<p><font SIZE="3">This program performs a complete garbage collection of the database in
+two phases. The first phase simply copies all of the objects from the database to local
+memory. This phase may be safely interrupted since it does not change the database. When
+all the objects are in local memory the database is removed and created again. The objects
+are then copied into it using a copying garbage collector. This phase must not be
+interrupted because it will leave the database in an incomplete state. Database garbage
+collection is very heavy on machine resources. It will need a large amount of virtual
+memory to contain the database, and will page very heavily unless provided with a lot of
+local memory.</font></p>
+
+<p><font SIZE="3">Performing this garbage collection has two benefits. Firstly it will
+place objects that refer to each other near to each other in the database to improve
+locality and to reduce the paging overhead of the system. Secondly, only those objects
+that are accessible are copied, so that the database is reduced to its minimum size.</font></p>
+
+<p><font SIZE="3">Alternatively, you can run the </font><font SIZE="3">program 
+  with the </font><b><font FACE="Courier" SIZE="3">-c</font></b><font SIZE="3"> 
+  flag:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>unix% poly -d -c ML_dbase</b></font></p>
+
+<p><font SIZE="3">This adds an extra common-expression elimination phase to the garbage
+collection process. Whenever the garbage collector finds two immutable objects that
+represent the same value, it eliminates one of them from the database. Running with the -c<b>
+</b>flag roughly doubles <b>discgarb</b>'s virtual memory requirements but makes a useful
+additional contribution to reducing the size of the database. </font></p>
+
+<p><font size="2"><b>Copyright (c) 2000 CUTS and contributers.</b></font></p>
+</body>
+</html>

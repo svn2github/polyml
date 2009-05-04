@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+
+<head>
+<title>Using Poly/ML - Chapter 9: Poly/ML Heap Parameters</title>
+</head>
+
+<body>
+
+<h1><font SIZE="6"><a name="HeapParameters9">Chapter 9: Poly/ML Heap Parameters</a></font></h1>
+
+<p><font SIZE="3">The heap is divided into two areas, one for immutable objects and one
+for mutable objects. In ML, most objects are immutable, that is they cannot be changed
+once they have been created, for example strings, lists, functions and trees. The only
+mutable objects are </font><font FACE="Courier" SIZE="3"><b>refs</b></font><font SIZE="3">,
+these are objects that can have their contents changed.</font></p>
+
+<p><font SIZE="3">The </font><b><font FACE="Courier" SIZE="3">-h</font></b><font SIZE="3">
+flag controls the maximum size of the local heap. The argument to </font><font FACE="Courier" SIZE="3"><b>-h</b></font><font SIZE="3"> is the size in Kb, and must be at
+least 500. Each of the mutable and immutable areas controlled by the garbage collector is
+allowed to grow up to the smaller of this heap area limit and an architecture-dependent
+limit. These architecture-dependent limits are:</font></p>
+
+<table BORDER="1" CELLSPACING="1" CELLPADDING="7" WIDTH="264">
+  <tr>
+    <td WIDTH="34%" VALIGN="TOP">&nbsp;</td>
+    <td WIDTH="41%" VALIGN="TOP"><font SIZE="3">SPARC</font></td>
+    <td WIDTH="25%" VALIGN="TOP"><font SIZE="3">POWER</font></td>
+  </tr>
+  <tr>
+    <td WIDTH="34%" VALIGN="TOP"><font SIZE="3">Mutable</font></td>
+    <td WIDTH="41%" VALIGN="TOP"><font SIZE="3">32Mb </font></td>
+    <td WIDTH="25%" VALIGN="TOP"><font SIZE="3">32Mb</font></td>
+  </tr>
+  <tr>
+    <td WIDTH="34%" VALIGN="TOP"><font SIZE="3">Immutable</font></td>
+    <td WIDTH="41%" VALIGN="TOP"><font SIZE="3">160Mb</font></td>
+    <td WIDTH="25%" VALIGN="TOP"><font SIZE="3">160Mb</font></td>
+  </tr>
+</table>
+
+<p><font SIZE="3">The </font><b><font FACE="Courier" SIZE="3">-mb</font></b> and <b><font FACE="Courier" SIZE="3">-ib</font></b><font SIZE="3"> flags control the mutable buffer and
+immutable buffer sizes respectively. The argument to each of these flags is a size in Kb
+which must be between 100 and the value of the </font><b><font FACE="Courier" SIZE="3">-h</font></b><font SIZE="3">flag. These buffers hold new objects created since the last full garbage
+collection. All new objects are mutable until their contents are fixed, so they are
+created in the mutable buffer. When this buffer is full a partial garbage collection is
+needed. This compacts the mutable buffer and moves all immutable objects (the majority)
+over to the immutable buffer.</font></p>
+
+<p><font SIZE="3">The mutable buffer is nearly empty after a partial garbage collection.
+The immutable buffer fills slowly at each partial garbage collection. When the immutable
+buffer is more than 90% full, or if the mutable buffer is more than 50% full after the
+partial garbage collection, then a full garbage collection is performed. The arguments to
+the </font><font FACE="Courier" SIZE="3"><b>-ip</b></font><font SIZE="3"> and </font><font FACE="Courier" SIZE="3"><b>-mp</b></font><font SIZE="3"> flags control these percentages,
+and must lie in the range 0 to 100.</font></p>
+
+<p><font SIZE="3">The full garbage collection scans the entire heap and compacts all the
+objects. Then it allocates more memory if needed so that at least the </font><font FACE="Courier" SIZE="3"><b>-ib</b></font><font SIZE="3"> and </font><b><font FACE="Courier" SIZE="3">-mb</font></b><font SIZE="3"> amounts are free. If it cannot
+allocate the buffer space then Poly/ML interrupts the computations and reports that the
+heap is full.</font></p>
+
+<p><font SIZE="3"><b>Note</b>: when Poly/ML performs a full garbage collection, it
+temporarily allocates an auxiliary bitmap on the C stack. This bitmap contains two bits of
+data for each 32-bit word contained in the Poly/ML heap. For example, using a 64Mb local
+heap will cause the C stack to grow by 4Mb during a full garbage collection. If Poly/ML is
+unable to expand the C stack as required - for example, if you have set a stack limit,
+using the Unix </font><b><font FACE="Courier" SIZE="3">limit stack</font></b><font SIZE="3"> command, that is too low - it will perform an unceremonious exit.</font></p>
+
+<p><font SIZE="3">If you increase the </font><font FACE="Courier" SIZE="3"><b>-mb</b></font><font SIZE="3"> number you will decrease the frequency of partial garbage collections. But each
+partial garbage collection will scan more objects. A mutable buffer of 1024Kb is a nice
+balance between collecting too often and pausing for long periods.</font></p>
+
+<p><font SIZE="3">If you increase the </font><font FACE="Courier" SIZE="3"><b>-ib</b></font><font SIZE="3"> number you will decrease the frequency of full garbage collections caused by the
+immutable buffer filling up. An immutable buffer of 1024Kb seems to be a nice balance
+between causing full garbage collections and wasting memory on the accumulation of dead
+objects.</font></p>
+
+<p><font SIZE="3">If you decrease the </font><font FACE="Courier" SIZE="3"><b>-h</b></font><font SIZE="3"> value it may reduce the swap space requirements of Poly/ML. But if it is reduced
+too far then Poly/ML will interrupt compilations and report that the heap is full. Poly/ML
+doesn't exit to Unix, it just returns to the Poly/ML prompt. The heap is considered full
+when the space required for objects plus the space required for the buffer exceeds the </font><b><font FACE="Courier" SIZE="3">-h</font></b><font SIZE="3"> limit. This applies to either
+immutables or mutables.</font></p>
+
+<p><font SIZE="3">If you decrease the </font><font FACE="Courier" SIZE="3"><b>-ip</b></font><font SIZE="3"> percentage or decrease the </font><font FACE="Courier" SIZE="3"><b>-mp</b></font><font SIZE="3"> percentage you will increase the frequency of full garbage collections and
+decrease the frequency of partial garbage collections.</font></p>
+
+<p><font SIZE="3"><b>Note</b>: if the </font><font FACE="Courier" SIZE="3"><b>-h</b></font><font SIZE="3"> flag is specified explicitly but the </font><font FACE="Courier" SIZE="3"><b>-mb</b></font><font SIZE="3"> and <b><font face="Courier">-ib</font> </b>flags are not present, then they
+default to the </font><font FACE="Courier" SIZE="3"><b>-h</b></font><font SIZE="3"> value
+divided by 5. Since this does not take account of the architectural limits then specifying
+very large </font><font FACE="Courier" SIZE="3"><b>-h</b></font><font SIZE="3"> values can
+cause the initial area sizes to be too large to successfully start Poly/ML. If this is a
+problem, you should specify the </font><font FACE="Courier" SIZE="3"><b>-ib</b></font><font SIZE="3"> and </font><font FACE="Courier" SIZE="3"><b>-mb</b></font><font SIZE="3"> flags
+explicitly.</font></p>
+
+<p><font size="2"><b>Copyright (c) 2000 CUTS and contributers.&nbsp;</b></font></p>
+</body>
+</html>

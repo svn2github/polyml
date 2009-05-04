@@ -1,0 +1,353 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+
+<head>
+<title>Using Poly/ML - Chapter 2: The Standard ML Initial Basis</title>
+</head>
+
+<body>
+
+<h1><font SIZE="6"><a name="Basis2">Chapter 2: The Standard ML Initial Basis</a></font></h1>
+
+<p><font size="3">This chapter describes the Initial Basis as implemented in the original
+1990 definition of Standard ML.&nbsp; It has largely been superseded by the Standard Basis
+Library which provides a much fuller set of functions.&nbsp; The functions in this chapter
+are still available in the SML90 structure but where possible the Standard Basis Library
+should be used.</font></p>
+
+<p><font SIZE="3">The ML Standard requires that any implementation should provide a small,
+standard, initial environment, called the <i>Initial Basis. </i>This chapter documents the
+Initial Basis, as provided by Poly/ML, except for the I/O functions which are dealt with
+in the next chapter.</font></p>
+
+<h2><a name="Types2.1"><b><font SIZE="4">2.1 Types</font></b></a></h2>
+
+<p><font SIZE="3">The following types are predefined by the Standard:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>datatype bool of true | false<br>
+datatype 'a list of nil | :: of 'a * 'a list<br>
+eqtype string<br>
+eqtype int<br>
+eqtype real<br>
+eqtype 'a ref<br>
+type exn<br>
+type instream<br>
+type outstream</b></font></p>
+
+<p><font SIZE="3"><b>Note: </b>exception constructors, declared using<b> <font face="Courier">exception</font></b>, produce values of type <b><font face="Courier">exn</font></b>.</font></p>
+
+<h2><font SIZE="4"><a name="Infixes2.2"><b>2.2 Infixes</b></a></font></h2>
+
+<p><font SIZE="3">The Standard predefines the following fixities:</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">infix 7 * div mod /<br>
+infix 6 + - ^<br>
+infix 5 :: @<br>
+infix 4 = &lt;&gt; &lt; &lt;= &gt;= &lt;<br>
+infix 3 := o</font></b></p>
+
+<p><font SIZE="3">Any of these may be changed by a user fixity directive, but doing this
+would probably be unwise.</font></p>
+
+<h2><b><font SIZE="4"><a name="Boolean2.3">2.3 Boolean</a> and Comparison Functions</font></b></h2>
+
+<p><font FACE="Courier" SIZE="3"><b>datatype bool = true | false<br>
+val not : bool -&gt; bool<br>
+val = : ''a * ''a -&gt; bool<br>
+val &lt;&gt; : ''a * ''a -&gt; bool</b></font></p>
+
+<p><b><font FACE="Courier" SIZE="3">not b</font></b><font SIZE="3"> returns the negation
+of </font><b><font FACE="Courier" SIZE="3">b</font></b><font SIZE="3">. This function
+behaves as if it were defined by:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>fun not true = false<br>
+&nbsp; | not false = true;</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>x = y</b></font><font SIZE="3"> returns </font><b><font FACE="Courier" SIZE="3">true</font></b><font SIZE="3"> if </font><b><font FACE="Courier" SIZE="3">x</font></b><font SIZE="3"> and </font><b><font FACE="Courier" SIZE="3">y</font></b><font SIZE="3"> are equal and </font><b><font FACE="Courier" SIZE="3">false</font></b><font SIZE="3"> otherwise. For refs and non-empty arrays two objects are equal only if they were
+created by the same function call. For other objects, equality is structural - two objects
+are equal if they have equal subparts.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">x &lt;&gt; y</font></b><font SIZE="3"> is equivalent
+to </font><b><font FACE="Courier" SIZE="3">not (x = y)</font></b><font SIZE="3">.</font></p>
+
+<p><font SIZE="3"><b>Note 1: </b>the equality type variable</font><font FACE="Courier" SIZE="3"> <b>''a</b></font><font SIZE="3"> which occurs in the type of </font><strong><font FACE="Courier" SIZE="3">=</font></strong><font SIZE="3"> and </font><strong><font FACE="Courier" SIZE="3">&lt;&gt;</font></strong><font SIZE="3"> ensures that the use of
+these functions is restricted to <i>equality types. </i>Roughly speaking, an object
+belongs to an equality type if it doesn't contain any functions or abstypes.</font></p>
+
+<p><font SIZE="3"><b>Note 2: </b>Standard ML does not provide standard <i>functions </i>for
+</font><b><font FACE="Courier" SIZE="3">and</font></b><font SIZE="3"> and </font><font FACE="Courier" SIZE="3"><b>or</b></font><font SIZE="3">; it provides </font><b><font FACE="Courier" SIZE="3">andalso</font></b><font SIZE="3"> and </font><b><font FACE="Courier" SIZE="3">orelse</font></b><font SIZE="3"> <i>keywords </i>instead. These
+keywords provide shortcut (left-to-right) evaluation of the corresponding boolean
+operations.</font></p>
+
+<h2><font SIZE="4"><b><a name="Integers2.4">2.4 Integers</a> and Reals</b></font></h2>
+
+<h3><a name="Typeconversion2.4.1"><font SIZE="4">2.4.1 Type conversion</font></a></h3>
+
+<p><font SIZE="3">Standard ML provides arithmetic operations on the two distinct types </font><font FACE="Courier" SIZE="3"><b>int</b></font><font SIZE="3"> and </font><b><font FACE="Courier" SIZE="3">real</font><font SIZE="3">.</font></b></p>
+
+<p><font FACE="Courier" SIZE="3"><b>eqtype int<br>
+eqtype real</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Floor<br>
+val floor : real -&gt; int</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Real (* NONSTANDARD *)<br>
+val real : int -&gt; real</b></font></p>
+
+<p><font SIZE="3">The functions </font><b><font FACE="Courier" SIZE="3">floor</font></b><font SIZE="3"> and </font><b><font FACE="Courier" SIZE="3">real</font></b><font SIZE="3">
+convert between the two types </font><b><font FACE="Courier" SIZE="3">real</font></b><font SIZE="3"> and </font><font FACE="Courier" SIZE="3"><b>int</b></font><font SIZE="3">.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">floor r</font></b><font SIZE="3"> is the largest
+integer which is not greater than the real number </font><b><font FACE="Courier" SIZE="3">r</font></b><font SIZE="3">.</font></p>
+
+<p><b><font FACE="Courier New" SIZE="3">real i</font></b><font SIZE="3"> is the real
+number corresponding to the integer </font><font FACE="Courier" SIZE="3"><b>i</b></font><font SIZE="3">.</font></p>
+
+<p><font SIZE="3"><b>Note 1: </b>the Standard specifies that the exception </font><b><font FACE="Courier" SIZE="3">Floor</font></b><font SIZE="3"> is raised whenever the result of
+the </font><b><font FACE="Courier" SIZE="3">floor</font></b><font SIZE="3"> operation
+won't fit into an integer. Since Poly/ML uses arbitrary-precision integers, this never
+occurs. Some other implementations of Standard ML use finite-precision arithmetic so a
+fully portable program must still be prepared to handle </font><b><font FACE="Courier" SIZE="3">Floor</font></b><font SIZE="3">.</font></p>
+
+<p><font SIZE="3"><b>Note 2: </b>the </font><b><font FACE="Courier" SIZE="3">Real</font></b><font SIZE="3"> exception is not part of the ML Standard, which assumes that any </font><font FACE="Courier" SIZE="3"><b>int</b></font><font SIZE="3"> can be converted into a </font><font FACE="Courier" SIZE="3"><b>real</b></font><font SIZE="3">; with arbitrary-precision
+integers and IEEE standard reals, this is not a reasonable assumption. The Poly/ML
+implementation of </font><b><font FACE="Courier" SIZE="3">real</font></b><font SIZE="3">
+will raise the non-standard exception </font><b><font FACE="Courier" SIZE="3">Real</font></b><font SIZE="3"> if the integer is too large to convert.</font></p>
+
+<h3><font SIZE="4"><b><a name="Arithmetic2.4.2">2.4.2 Arithmetic functions</a></b></font></h3>
+
+<p><font SIZE="3">These operations provide standard arithmetic operations on </font><font FACE="Courier" SIZE="3"><b>int</b></font><font SIZE="3"> and </font><b><font FACE="Courier" SIZE="3">real</font></b><font SIZE="3">. Note that most of these operations
+are <i>overloaded; </i>if you use them, you must provide enough type information so that
+the compiler can determine which version you want.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Neg<br>
+val ~ : int -&gt; int<br>
+val ~ : real -&gt; real</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Abs<br>
+val abs : int -&gt; int<br>
+val abs : real -&gt; real</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Sum<br>
+val + : int * int -&gt; int<br>
+val + : real * real -&gt; real</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Diff<br>
+val - : int * int -&gt; int<br>
+val - : real * real -&gt; real</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Prod<br>
+val * : int * int -&gt; int<br>
+val * : real * real -&gt; real</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Div<br>
+val div : int * int -&gt; int</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Mod<br>
+val mod : int * int -&gt; int</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Quot<br>
+val / : real * real -&gt; real</b></font></p>
+
+<p><font SIZE="3"><b>Note 1: </b>the above exceptions are raised when the result of the
+corresponding function is too large. Since Poly/ML uses arbitrary-precision integers (and
+since a </font><b><font FACE="Courier" SIZE="3">real</font></b><font SIZE="3"> can always
+be negated), the exceptions </font><b><font FACE="Courier" SIZE="3">Neg</font></b><font SIZE="3"> and </font><b><font FACE="Courier" SIZE="3">Abs</font></b><font SIZE="3"> will
+never be raised and the exceptions </font><b><font FACE="Courier" SIZE="3">Sum</font></b><font SIZE="3">, </font><b><font FACE="Courier" SIZE="3">Diff</font></b><font SIZE="3"> and </font><b><font FACE="Courier" SIZE="3">Prod</font></b><font SIZE="3"> will not be raised by the integer
+versions of the functions. The exceptions </font><b><font FACE="Courier" SIZE="3">Div</font></b><font SIZE="3"> and </font><b><font FACE="Courier" SIZE="3">Mod</font></b><font SIZE="3"> will
+be raised only for division by zero. Programs which are written for portability should
+still handle these exceptions, however, as some other implementations of Standard ML use
+finite-precision arithmetic.</font></p>
+
+<p><font SIZE="3"><b>Note 2: </b>the operators </font><b><font FACE="Courier" SIZE="3">mod</font></b><font SIZE="3"> and </font><b><font FACE="Courier" SIZE="3">div</font></b><font SIZE="3"> are
+defined so that the remainder has the same sign as the divisor. For example:</font></p>
+<div>
+
+<table border="0" width="578">
+  <tr>
+    <td width="279"><font FACE="Courier" SIZE="3"><b>20 mod&nbsp; 7 = 6<br>
+    ~20 mod ~7 = ~6<br>
+    20 mod ~7 = ~l<br>
+    ~20 mod&nbsp; 7 = 1</b></font></td>
+    <td width="291" height="3"><font FACE="Courier" SIZE="3"><b>20 div &nbsp; 7 = 2<br>
+    ~20 div ~7 = 2<br>
+    20 div ~7 = ~3<br>
+    ~20 div&nbsp; 7 = ~3</b></font></td>
+  </tr>
+</table>
+</div>
+
+<h3><font SIZE="4"><a name="Trigonometric2.4.3">2.4.3 Trigonometric function</a>s</font></h3>
+
+<p><font FACE="Courier" SIZE="3"><b>val sin : real -&gt; real<br>
+val cos : real -&gt; real<br>
+val arctan : real -&gt; real</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Exp<br>
+val exp : real -&gt; real</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Ln<br>
+val ln : real -&gt; real</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Sqrt<br>
+val sqrt : real -&gt; real</b></font></p>
+
+<p><font SIZE="3">These are the standard mathematical functions; if the argument is
+outside the domain of the function or if the result is too large to represent then the
+corresponding exception will be raised.</font></p>
+
+<h3><font SIZE="4"><a name="Order2.4.4">2.4.4 Order Relations</a></font></h3>
+
+<p><font SIZE="3">Standard ML provides the usual ordering tests on integers and reals.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val &lt; : int * int -&gt; bool<br>
+val &lt; : real * real -&gt; bool</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val &lt;= : int * int -&gt; bool<br>
+val &lt;= : real * real -&gt; bool</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val &gt;= : int * int -&gt; bool<br>
+val &gt;= : real * real -&gt; bool</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val &gt; : int * int -&gt; bool<br>
+val &gt; : real * real -&gt; bool</b></font></p>
+
+<p><font SIZE="3">As for the arithmetic operations, these are overloaded so the compiler
+must be given enough type information to disambiguate them.</font></p>
+
+<h2><font SIZE="4"><a name="List2.5">2.5 List processing</a></font></h2>
+
+<p><font SIZE="3">Standard ML provides a few built-in functions for list processing:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>datatype 'a list nil | :: of 'a * 'a list<br>
+val @ : 'a list 'a list -&gt; 'a list<br>
+val rev : 'a list -&gt; 'a list<br>
+val map ('a -&gt; 'b) -&gt; 'a list -&gt; 'b list</b></font></p>
+
+<p><font SIZE="3">These behave as if they were defined as follows:</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">fun nil @ l = l<br>
+| (h :: t) @ l = h :: (t @ l);</font></b></p>
+
+<p><b><font FACE="Courier" SIZE="3">fun map f nil = nil<br>
+| map f (h :: t) = f h :: map f t;</font></b></p>
+
+<p><b><font FACE="Courier" SIZE="3">local<br>
+&nbsp; fun revOnto l nil = l<br>
+&nbsp;&nbsp;&nbsp; | revOnto l (h :: t) = revOnto (h :: l) t<br>
+in<br>
+&nbsp; fun rev l = revOnto nil l<br>
+end;</font></b></p>
+
+<h2><b><font SIZE="4"><a name="String2.6">2.6 String processing</a></font></b></h2>
+
+<p><font SIZE="3">Standard ML also provides a few built-in functions for string
+processing:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>eqtype string<br>
+val size : string -&gt; int</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Ord<br>
+val ord : string -&gt; int</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Chr<br>
+val chr : int -&gt; string</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val explode : string -&gt; string list<br>
+val implode : string list -&gt; string<br>
+val ^ : string * string -&gt; string</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>size s</b></font><font SIZE="3"> returns the length of
+the string </font><b><font FACE="Courier" SIZE="3">s</font></b><font SIZE="3">, in
+characters.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">ord s</font></b><font SIZE="3"> returns the ASCII code
+of the first character of the string </font><font FACE="Courier" SIZE="3"><b>s</b></font><font SIZE="3">.<b> </b>It raises the exception </font><b><font FACE="Courier" SIZE="3">Ord</font></b><font SIZE="3"> if the string is empty.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">chr i</font></b><font SIZE="3"> returns a
+one-character string consisting of the character whose ASCII code is </font><font FACE="Courier" SIZE="3"><b>i</b></font><font SIZE="3">.<b> </b>It raises the exception <b>Chr
+</b>if </font><b><font FACE="Courier" SIZE="3">i</font></b><font SIZE="3"> is not in the
+range </font><font FACE="TIMES" SIZE="3">0 <u>&lt;</u> i &lt; 256</font><font SIZE="3">.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">explode s</font></b><font SIZE="3"> converts the
+string <b>s </b>into a list of one-character strings - one string for each character of
+the original string </font><b><font FACE="Courier" SIZE="3">s</font></b><font SIZE="3">.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">implode sl</font></b><font SIZE="3"> concatenates all
+the strings in the string-list </font><b><font FACE="Courier" SIZE="3">sl</font></b><font SIZE="3">.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">s1<i> </i>^ s2</font></b><font SIZE="3"> coneatenates
+the two strings </font><b><font FACE="Courier" SIZE="3">s1</font></b><font SIZE="3"> and </font><font FACE="Courier" SIZE="3"><b>s2</b></font><font SIZE="3">.</font></p>
+
+<p><font SIZE="3">Poly/ML overloads the relational operators &lt;, &lt;=, &gt;= and &gt;
+so that they also operate on strings (in addition to ints and reals), using lexicographic
+ordering.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val &lt; : string * string -&gt; bool<br>
+val &lt;= : string * string -&gt; bool<br>
+val &gt;= : string * string -&gt; bool<br>
+val &gt; : string * string -&gt; bool</b></font></p>
+
+<p><font SIZE="3">The provision of relational operators on strings is a non-standard
+extension to the Standard Initial Basis and may not be supported by other implementations
+of Standard ML.</font></p>
+
+<h2><font SIZE="4"><b><a name="Refs2.7">2.7 Refs</a></b></font></h2>
+
+<p><font SIZE="3">Standard ML provides a collection of operations on the type </font><font FACE="Courier" SIZE="3"><b>ref</b></font><font FACE="TIMES" SIZE="3">.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">eqtype 'a ref<br>
+val ref: '_a -&gt; '_a ref<br>
+val := : 'a ref * 'a -&gt; unit<br>
+val ! : 'a ref -&gt; 'a</font></b></p>
+
+<p><b><font FACE="Courier" SIZE="3">ref x</font></b><font SIZE="3"> creates a new </font><b><font FACE="Courier" SIZE="3">ref</font></b><font SIZE="3"> (updatable pointer) to </font><font FACE="Courier" SIZE="3"><b>x</b></font><font SIZE="3">.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">r : = x</font></b><font SIZE="3"> updates the ref </font><b><font FACE="Courier" SIZE="3">r</font></b><font SIZE="3"> so that it now points to the value </font><b><font FACE="Courier" SIZE="3">x</font></b><font SIZE="3">.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">! r</font></b><font SIZE="3"> returns the value which
+is currently pointed at by the ref </font><b><font FACE="Courier" SIZE="3">r</font></b><font SIZE="3">.</font></p>
+
+<p><font SIZE="3"><b>Note 1: </b>the value constructor </font><b><font FACE="Courier" SIZE="3">ref</font></b><font SIZE="3"> may also be used in patterns, so that could be
+defined as follows:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>fun ! (ref x) = x;</b></font></p>
+
+<p><b><font SIZE="3">Note 2: </font><font FACE="Courier" SIZE="3">'a ref</font></b><font SIZE="3"> is an equality type even if </font><b><font FACE="Courier" SIZE="3">'a</font></b><font SIZE="3"> isn't; no other type constructor has this property. This means that it is always
+possible to compare two refs (of the same type) for equality even if we can't compare the
+objects they refer to. Two refs are equal precisely when they are, in fact, the same ref;
+the referenced objects are not tested for equality.</font></p>
+
+<h2><font SIZE="4"><b><a name="Miscellaneous2.8">2.8 Miscellaneous</a></b></font></h2>
+
+<p><font SIZE="3">This section describes those parts of the Initial Basis that don't fit
+elsewhere.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val o : ('b -&gt; 'c) * ('a -&gt; 'b) -&gt; ('a -'c)</b></font></p>
+
+<p><font SIZE="3">The infix function <b>o </b>implements function composition; it behaves
+as if it were defined as follows:</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">fun (f o g) x = f (g x);</font></b></p>
+
+<p><b><font FACE="Courier" SIZE="3">exception Match<br>
+exception Bind<br>
+exception Interrupt</font></b></p>
+
+<p><b><font FACE="Courier" SIZE="3">Match</font></b><font SIZE="3"> is raised whenever a
+non-exhaustive pattern match in a </font><font FACE="Courier" SIZE="3"><b>fun</b></font><font SIZE="3">, </font><font FACE="Courier" SIZE="3"><b>fn</b></font><font SIZE="3"> or </font><b><font FACE="Courier" SIZE="3">case</font></b><font SIZE="3"> expression fails to find a clause
+which matches the selection expression.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">Bind</font></b><font SIZE="3"> is raised whenever ML
+attempts to bind an expression to a pattern that doesn't match it (in a </font><b><font FACE="Courier" SIZE="3">let</font></b><font SIZE="3"> or </font><b><font FACE="Courier" SIZE="3">local</font></b><font SIZE="3"> declaration).</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">Interrupt</font></b><font SIZE="3"> is raised when
+Poly/ML is interrupted, either externally (by</font><font FACE="Courier" SIZE="3"> <b>&lt;control-C&gt;
+f</b></font><font SIZE="3">)<b> </b>or internally (by running out of heap space).</font></p>
+
+<p><font SIZE="3"><b>Note: </b>the ML Standard requires the compiler to warn the
+programmer about any non-exhaustive matches which might allow the exceptions </font><b><font FACE="Courier" SIZE="3">Match</font></b><font SIZE="3"> and </font><b><font FACE="Courier" SIZE="3">Bind</font></b><font SIZE="3"> to be raised.</font></p>
+
+<p><font size="2"><b>Copyright (c) 2000 CUTS and contributers.</b></font></p>
+</body>
+</html>

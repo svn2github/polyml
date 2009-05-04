@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+
+<head>
+<title>Porting Poly/ML</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+
+<h2><font face="Arial"><strong>Porting Poly/ML</strong></font></h2>
+
+<p>Porting Poly/ML to a new operating system or architecture is unfortunately a lot more
+complicated than recompiling the sources.&nbsp; The complication lies in the fact that a
+Poly/ML database is both operating system dependent and architecture dependent. </p>
+
+<h3><font face="Arial">Porting Poly/ML to a new operating system</font></h3>
+
+<p>A database is a formed from two segments which need to be loaded into memory. On most
+operating systems this is done by &quot;memory mapping&quot; the segments.&nbsp; This
+involves requesting the operating system to load the pages of the segments into memory as
+required and generally gives much better performance than the alternative of allocating
+memory and reading the segments explicitly.&nbsp; The contents of the segments need to be
+loaded at specific virtual addresses.&nbsp; That is because they contain data structures,
+such as list cons-cells, which contain pointers to other objects.&nbsp; In order for the
+pointers to be machine addresses and for them to work properly every object needs to be
+reloaded at the same address each time.&nbsp; It would be possible to relocate all the
+objects when they were loaded but that would involve loading and updating every object and
+would lose the advantages of memory mapping.</p>
+
+<p>When porting Poly/ML to a new operating system the first requirement is to find a
+suitable address range in which to map the database.&nbsp; Operating systems tend to
+partition up the address space between program space, data space and stack with some area
+available for memory mapping.&nbsp; What that area is depends on the operating system and
+any special requirements of the hardware.&nbsp; Often the only way to find out what
+addresses are suitable is be experiment.&nbsp; Try mapping a file (on Unix this uses the
+mmap function) without specifying an address and see what address it gets mapped at.
+&nbsp; Then see whether it is possible to map the file giving that address explicitly.
+&nbsp; </p>
+
+<p>A database consists of a header and two segments: the immutable area and the mutable
+area.&nbsp; The header is a small section at the start of the database, typically a single
+page, containing information about the database.&nbsp; The mutable area typically forms
+10% of the database and contains values such as refs and arrays whose values can be
+modified.&nbsp; The major part of the database is immutable data, such as tuples,
+datatypes, vectors and, notably, segments containing machine code.&nbsp; The machine code
+is native machine code which is why the database is architecture-dependent.&nbsp; The
+operating system call which maps files allows the mutable and immutable segments to be
+mapped to separate regions of the address space.</p>
+
+<p>As well as the two segments for a database there is also a segment, known as the IO
+segment, which is initialised by the run-time system before a database is loaded.&nbsp; It
+enables code in the database to call functions in the run-time system and, as with the
+other segments, must be created at a specific address.&nbsp; Although it does not
+correspond to a portion of a real file it is normally created using the same mmap function
+used to map the segments of the database.&nbsp; Although not strictly necessary, the local
+(temporary) memory used by a Poly/ML program while it is running is also allocated in a
+similar way.</p>
+
+<p>Once suitable addresses have been found then the values should be added to the
+&quot;addresses.h&quot; file using appropriate ifdefs.&nbsp; This may be a good time to
+add your operating system to the &quot;configure&quot; shell script to set the defines.
+&nbsp; The table below shows values currently used in the supported configurations. &nbsp;
+The values for some other systems can be found in &quot;addresses.h&quot;.</p>
+
+<table border="1" width="685">
+  <tr>
+    <td width="143">Variable</td>
+    <td width="267">Meaning</td>
+    <td width="161">Linux/FreeBSD/Windows on i386 </td>
+    <td width="98">Solaris on Sparc</td>
+  </tr>
+  <tr>
+    <td width="143">H_BOTTOM</td>
+    <td width="267">Start of space for database</td>
+    <td width="161">0x20000000</td>
+    <td width="98">0xC0040000</td>
+  </tr>
+  <tr>
+    <td width="143">H_TOP</td>
+    <td width="267">Limit of space for database</td>
+    <td width="161">0x3F000000</td>
+    <td width="98">0xD0000000</td>
+  </tr>
+  <tr>
+    <td width="143">IO_BOTTOM</td>
+    <td width="267">Start of IO area</td>
+    <td width="161">0x3F000000</td>
+    <td width="98">0xC0000000</td>
+  </tr>
+  <tr>
+    <td width="143">IO_TOP</td>
+    <td width="267">Limit of IO area</td>
+    <td width="161">0x3F002000</td>
+    <td width="98">0xC0002000</td>
+  </tr>
+  <tr>
+    <td width="143">LOCAL_IBOTTOM</td>
+    <td width="267">Start of space for local immutable data</td>
+    <td width="161">0x01000000</td>
+    <td width="98">0x20000000</td>
+  </tr>
+  <tr>
+    <td width="143">LOCAL_ITOP</td>
+    <td width="267">Limit of memory for local immutable data</td>
+    <td width="161">0x1C000000</td>
+    <td width="98">0xA0000000</td>
+  </tr>
+  <tr>
+    <td width="143">LOCAL_MBOTTOM</td>
+    <td width="267">Start of space for local mutable data</td>
+    <td width="161">0x1C000000</td>
+    <td width="98">0xA0000000</td>
+  </tr>
+  <tr>
+    <td width="143">LOCAL_MTOP</td>
+    <td width="267">Limit of memory for local mutable data</td>
+    <td width="161">0x20000000</td>
+    <td width="98">0xC0000000</td>
+  </tr>
+</table>
+
+<p>Build the driver program using the newly modified version of &quot;addresses.h&quot;.
+&nbsp; If you are a lucky it will all compile but the chances are you will have to make a
+few changes to account for operating system differences, such as differences in include
+files.&nbsp; If the architecture is the same as one for which there is a code-generator
+you are in luck: take a copy of a database for that architecture and try compacting it
+using &quot;poly -d&quot;.&nbsp; It may be able to modify the database and relocate it to
+the addresses you need.&nbsp; If that fails, perhaps because the address range for which
+the database was originally designed is too far different from what your system expects,
+you may have to make some temporary modifications to enable the database to be loaded.</p>
+
+<p>If there is no database for your architecture you can build the version of Poly/ML
+which includes a byte-code interpreter.&nbsp; In this case start with the portable
+database PortDB.txt.&nbsp; This comes as a text version and contains no assumptions about
+the address range to which it will be loaded.&nbsp; You first need to build the
+&quot;readport&quot; program by typing &quot;make readport&quot; in the &quot;driver&quot;
+directory and then run &quot;readport PortDB.txt NewDB&quot;.&nbsp; This will read the
+portable database and create a new database, NewDB, using the address range you set up in
+&quot;addresses.h&quot;.&nbsp; You should now be able to run poly with this new database.
+&nbsp; The interpreter is reasonably fast and should allow you to experiment with Poly.
+&nbsp; To get the best out of it you need a native code version and this is the subject of
+the next section.</p>
+
+<h3><font face="Arial">Porting Poly/ML to a new architecture</font></h3>
+
+<p>TO BE WRITTEN.</p>
+
+</body>
+</html>

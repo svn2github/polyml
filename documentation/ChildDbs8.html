@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+
+<head>
+<title>Using Poly/ML - Chapter 8: Using Multiple Databases</title>
+</head>
+
+<body>
+
+<h1><font SIZE="6"><a name="MultipleDatabases8">Chapter 8: Using Multiple Databases</a></font></h1>
+<p><font color="#FF0000" size="6" face="Arial, Helvetica, sans-serif">This section applies only to Poly/ML version 4 and older.</font></p>
+
+<h2><b><font SIZE="4"><a name="ChildDatabases8.1">8.1 Child Databases</a></font></b></h2>
+
+<p><font SIZE="3">So far, we have assumed that only one database is being used. In fact,
+it is possible, and often useful, to create and use multiple databases. New databases are
+created using </font><font FACE="Courier" SIZE="3"><b>PolyML.make_database</b></font><font SIZE="3">. A full path name must be used for the database name on the command line so that
+the child database can use the same full path name to locate its parent database in future
+sessions. For example:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>unix% poly /usr/staff/john/john_dbase<br>
+&gt; PolyML.make_database &quot;child_dbase&quot;;<br>
+val it = () : unit<br>
+&gt; PolyML.quit();</b></font></p>
+
+<p><font SIZE="3">will create a new Unix file, </font><font FACE="Courier" SIZE="3"><b>child_dbase</b></font><font SIZE="3">. You can now run ML using the new database by entering:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>unix% poly child_dbase</b></font></p>
+
+<p><font SIZE="3">at the Unix prompt. The new database, </font><font FACE="Courier" SIZE="3"><b>child_dbase</b></font><font SIZE="3">, is initially empty except that it
+'inherits' all the definitions contained in its parent database (here </font><font FACE="Courier" SIZE="3"><b>john dbase</b></font><font SIZE="3">). New objects are created
+in the heap as usual and, if the database is committed, will be saved in </font><font FACE="Courier" SIZE="3"><b>child_dbase</b></font><font SIZE="3">. For example:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>&gt; val demo = &quot;demo&quot;;<br>
+val demo = &quot;demo&quot; : string<br>
+&gt; PolyML.commit();<br>
+val it = () : unit</b></font></p>
+
+<p><font SIZE="3">will add the string </font><b><font FACE="Courier" SIZE="3">&quot;demo&quot;</font></b><font SIZE="3"> to the child database. If an object from the parent database is changed, the
+heap will contain the updated object. </font><b><font FACE="Courier" SIZE="3">PolyML.commit()</font></b><font SIZE="3"> will nor update the parent database, however. Poly/ML will only update the
+database named on the Unix command line (here </font><font FACE="Courier" SIZE="3"><b>child_dbase</b></font><font SIZE="3">). This means that any change to an object in a parent database will not persist
+between ML sessions.</font></p>
+
+<p><font SIZE="3">The child database is not accessible from the parent database. For
+example:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>unix% poly john_dbase<br>
+&gt; demo;<br>
+Error- Value or constructor (demo) has not been declared<br>
+Found near demo<br>
+Exception static-errors raised<br>
+&gt;</b></font></p>
+
+<p><font SIZE="3">The distributed database for the current version of the system is
+several megabytes large. Giving each person their own copy of this database would use a
+lot of disk space. A better solution is to give each person a different child of the
+distributed database. For example, assuming the distributed database is named </font><font FACE="Courier" SIZE="3"><b>ML_dbase</b></font><font SIZE="3">, then typing</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>unix% poly /usr/share/ML_dbase<br>
+&gt; PolyML.make_database &quot;/usr/staff/john/john_dbase&quot;;<br>
+val it = () :...<br>
+&gt; PolyML.make_database &quot;/usr/staff/mary/mary_dbase&quot;;<br>
+&gt; val it = () :...</b></font></p>
+
+<p><font SIZE="3">would create a child database called </font><b><font FACE="Courier" SIZE="3">/usr/staff/john/john_dbase</font></b><font SIZE="3"> and another child database
+called </font><font FACE="Courier" SIZE="3"><b>/usr/staff/mary/mary_dbase</b></font><font SIZE="3">. After all users have been given child databases, the parent database (</font><font FACE="Courier" SIZE="3"><b>ML_dbase</b></font><font SIZE="3">) should be made read-only.
+(The parent database must be made readable by all users of the system, as this database
+contains the actual code for the ML compiler.) In this way, the database containing the
+system will be shared, economising on disk space, but each person will have their own
+database for their own particular work.</font></p>
+
+<h2><b><font SIZE="4"><a name="CopyingLinkedDatabases8.2">8.2 Copying Linked Databases</a></font></b></h2>
+
+<p><font SIZE="3">Suppose John has a database called <b>john_dbase</b> which is a child
+database of the main Poly/ML database, </font><font FACE="Courier" SIZE="3"><b>ML_dbase</b></font><font SIZE="3">. In addition, he has created a child database of his own called <b>child_dbase.</b></font></p>
+
+<p><font SIZE="3">Mary has no databases, and wishes to copy John's. She can copy the
+database files with the following commands.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>unix% cp /usr/staff/john/john_dbase
+/usr/staff/mary/mary_dbase<br>
+unix% cp /usr/staff/john/child_dbase /usr/staff/mary/child_dbase</b></font></p>
+
+<p><font SIZE="3">Unfortunately, this does not adjust the full pathnames inside the
+databases that point upwards to parent databases - Mary's </font><b><font FACE="Courier" SIZE="3">child_dbase</font></b><font SIZE="3"> still points to</font><font FACE="Courier" SIZE="3"> <b>john_dbase</b></font><font SIZE="3">. Mary can correct this using </font><font FACE="Courier" SIZE="3"><b>changeParent</b></font><font SIZE="3">.</font></p>
+
+<p><font SIZE="3">The program </font><font FACE="Courier" SIZE="3"><b>changeParent </b></font><font SIZE="3">takes two arguments. The first is the child database that contains a parent
+pointer, and the second is the new parent name.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>unix% changeParent child_dbase
+/usr/staff/mary/mary_dbase</b></font></p>
+
+<p><font SIZE="3">This has made the new </font><b><font FACE="Courier" SIZE="3">child_dbase</font></b><font SIZE="3"> point to </font><font FACE="Courier" SIZE="3"><b>mary_dbase</b></font><font SIZE="3">. Note that full pathnames must be used for parent names.</font></p>
+
+<h2><font SIZE="4"><b><a name="DatabaseHeapLimits8.3">8.3 Database and Heap Limits</a></b></font></h2>
+
+<p><font SIZE="3">Do not run </font><b><font FACE="Courier" SIZE="3">discgarb</font></b><font SIZE="3"> on a parent database because this rearranges all the objects in that database
+without updating the references held in its child databases. You can add extra bindings
+into a parent database safely, as long as none of its children are in use.</font></p>
+
+<p><font SIZE="3">Poly/ML can create up to 3 levels of database hierarchy, but there is no
+limit on the number of child databases at each level.</font></p>
+
+<p><font SIZE="3">In ML, most objects that are created in the heap or in a database are
+immutable, that is they cannot be changed once they have been created. The only mutable
+objects, that is objects that can have their contents changed, are </font><font FACE="Courier" SIZE="3"><b>refs</b></font><font SIZE="3">. Mutable objects rarely account
+for more than 25% of the objects in a database.</font></p>
+
+<p><font SIZE="3">A database may grow to a total of 36Mb, where 32Mb is reserved for
+immutable objects, and 4Mb is reserved for mutable objects.</font></p>
+
+<p><font SIZE="3">The <a href="HeapParms9.html">maximum size of the local heap</a> is set
+by the </font><b><font FACE="Courier" SIZE="3">-h</font></b><font SIZE="3"> flag but may
+not exceed an architecturally-imposed limit.</font></p>
+
+<p><font size="2"><b>Copyright (c) 2000 CUTS and contributers.</b></font></p>
+</body>
+</html>

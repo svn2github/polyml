@@ -1,0 +1,107 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+
+<head>
+<title>Using Poly/ML - Chapter 4: Vectors and Arrays</title>
+</head>
+
+<body>
+
+<h1><font SIZE="6"><a name="VectorsArrays4">Chapter 4: Vectors and Arrays</a></font></h1>
+
+<p><font SIZE="3">This chapter describes Poly/ML's implementation of vectors and arrays
+(vectors are non-updatable arrays). The structures </font><b><font FACE="Courier" SIZE="3">Vector</font></b><font SIZE="3"> and </font><b><font FACE="Courier" SIZE="3">Array</font></b><font SIZE="3"> are
+not part of the Standard ML Initial Basis and may not be supported by all implementations
+of Standard ML, but we don't know of any serious implementation that doesn't support them.</font></p>
+
+<h2><font SIZE="4"><b><a name="Vectors4.1">4.1 Vectors</a></b></font></h2>
+
+<p><font SIZE="3">The structure </font><b><font FACE="Courier" SIZE="3">Vector</font></b><font SIZE="3"> contains the following items:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>eqtype 'a vector<br>
+val vector : 'a list -&gt; 'a vector</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val length : 'a vector int</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Subscript<br>
+val sub : 'a vector * int -&gt; 'a</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Size<br>
+val tabulate : int * (int -&gt; 'a) -&gt; 'a vector</b></font></p>
+
+<p><font SIZE="3">The purpose of these is as follows:</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">Vector.vector l</font></b><font SIZE="3"> produces a
+vector whose elements<b> </b>are the members of the list </font><font FACE="Courier" SIZE="3"><b>l</b></font><font SIZE="3">.</font> </p>
+
+<p><b><font FACE="Courier" SIZE="3">Vector.length v</font></b><font SIZE="3"> returns the
+number of elements in the vector </font><font FACE="Courier" SIZE="3"><b>v</b></font><font SIZE="3">.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>Vector.sub (v,n) </b></font><font SIZE="3">returns the
+n'th element of the vector </font><font FACE="Courier" SIZE="3"><b>v</b></font><font SIZE="3">. It raises the exception </font><b><font FACE="Courier" SIZE="3">Vector.Subscript</font></b><font SIZE="3"> if </font><b><font FACE="Courier" SIZE="3">n</font></b><font SIZE="3"> is
+outside the range 0 <u>&lt;</u> n &lt; </font><font FACE="Courier" SIZE="3"><b>Vector.length
+v</b></font><font SIZE="3">.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">Vector.tabulate (n,f)</font></b><font SIZE="3"> is an
+alternative way to create a vector. It raises the exception </font><b><font FACE="Courier" SIZE="3">Vector.Size</font></b><font SIZE="3"> if </font><b><font FACE="Courier" SIZE="3">n
+</font></b><font SIZE="3">is negative; otherwise it creates a vector of length </font><b><font FACE="Courier" SIZE="3">n</font></b><font SIZE="3"> whose i'th element is </font><font FACE="Courier" SIZE="3"><b>(f i)</b></font><font SIZE="3">.</font></p>
+
+<p><b><font SIZE="3">Note: </font><font FACE="Courier" SIZE="3">vector</font></b><font SIZE="3"> is an equality type. Two vectors are equal if they consist of the same elements
+in the same order.</font></p>
+
+<h2><font SIZE="4"><a name="Arrays4.2">4.2 <b>Arrays</b></a></font></h2>
+
+<p><font SIZE="3">The structure </font><b><font FACE="Courier" SIZE="3">Array</font></b><font SIZE="3"> contains the following items:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>eqtype 'a array<br>
+val arrayoflist : '_a list -&gt; '_a array</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val length : 'a array -&gt; int</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Subscript<br>
+val sub : 'a array * int -&gt; 'a<br>
+val update : 'a array * int 'a -&gt; unit</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Size<br>
+val tabulate : int * (int -&gt; '_a) -&gt; '_a array<br>
+val array : int * '_a -&gt; '_a array</b></font></p>
+
+<p><font SIZE="3">The purpose of these is as follows:</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">Array.arrayoflist l</font></b><font SIZE="3"> produces
+an array whose initial values are the members of the list </font><font FACE="Courier" SIZE="3"><b>1</b></font><font SIZE="3">.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">Array.length a</font></b><font SIZE="3"> returns the
+number of elements in the array</font><font FACE="Courier" SIZE="3"> <b>a.</b></font></p>
+
+<p><b><font FACE="Courier" SIZE="3">Array.sub (a,n)</font></b><font SIZE="3"> returns the
+n'th element of the array </font><b><font FACE="Courier" SIZE="3">a</font></b><font SIZE="3">. It raises the exception </font><b><font FACE="Courier" SIZE="3">Array.Subscript</font></b><font SIZE="3"> if </font><b><font FACE="Courier New" SIZE="3">n</font></b><font SIZE="3"> is
+outside the range 0 <u>&lt;</u> n &lt; </font><b><font FACE="Courier" SIZE="3">Array.length
+a</font></b><font SIZE="3">.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">Array.update (a,n,x)</font></b><font SIZE="3"> updates
+the n'th element of the array <b>a </b>to be </font><b><font FACE="Courier" SIZE="3">x</font></b><font SIZE="3">. It raises the exception </font><b><font FACE="Courier" SIZE="3">Array.Subscript</font></b><font SIZE="3"> if </font><b><font FACE="Courier" SIZE="3">n</font></b><font SIZE="3"> is
+outside the range 0 <u>&lt;</u> n<b> &lt;</b> </font><b><font FACE="Courier" SIZE="3">Array.length
+a</font></b><font SIZE="3">.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">Array.tabulate (n,f)</font></b><font SIZE="3"> is an
+alternative way to create an array. It raises the exception </font><b><font FACE="Courier" SIZE="3">Array.Size</font></b><font SIZE="3"> if </font><b><font FACE="Courier" SIZE="3">n</font></b><font SIZE="3"> is negative; otherwise it creates an array of length </font><b><font FACE="Courier" SIZE="3">n</font></b><font SIZE="3"> whose i'th element is </font><font FACE="Courier" SIZE="3"><b>(f i)</b></font><font SIZE="3">.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">Array.array (n,x)</font></b><font SIZE="3"> creates an
+array of length</font><font FACE="Courier" SIZE="3"> <b>n</b></font><font SIZE="3"> where
+every element of the array has the initial value </font><b><font FACE="Courier" SIZE="3">x</font></b><font SIZE="3">. It raises the exception </font><b><font FACE="Courier" SIZE="3">Array.Size</font></b><font SIZE="3"> if </font><font FACE="Courier" SIZE="3"><b>n</b></font><font SIZE="3"> is
+negative.</font></p>
+
+<p><b><font SIZE="3">Note 1: </font><font FACE="Courier" SIZE="3">array</font></b><font SIZE="3"> is an equality type that behaves rather like </font><font FACE="Courier" SIZE="3"><b>ref</b></font><font SIZE="3">; two arrays are distinct if it is possible to
+update one without updating the other. This means that they are equal if they were created
+by the same function call or if they are both of length zero.</font></p>
+
+<p><font SIZE="3"><b>Note 2: </b>arrays are like refs in that they can be updated; this is
+why imperative type variables ('</font><b><font FACE="Courier" SIZE="3">_a</font></b><font SIZE="3">) must appear in the types of the array-creation functions.</font></p>
+
+<p><font SIZE="3"><b>Note 3: </b>The two </font><b><font FACE="Courier" SIZE="3">Subscript</font></b><font SIZE="3"> exceptions (</font><b><font FACE="Courier" SIZE="3">Vector.Subscript</font></b><font SIZE="3"> and </font><font FACE="Courier" SIZE="3"><b>Array.Subscript</b></font><font SIZE="3">) are identical, as are the two </font><b><font FACE="Courier" SIZE="3">Size</font></b><font SIZE="3"> exceptions (</font><b><font FACE="Courier" SIZE="3">Vector.Size</font></b><font SIZE="3"> and </font><font FACE="Courier" SIZE="3"><b>Array.Size</b></font><font SIZE="3">).
+This means that a handler for </font><b><font FACE="Courier" SIZE="3">Vector.Subscript</font></b><font SIZE="3"> will also catch </font><b><font FACE="Courier" SIZE="3">Array.Subscript</font></b><font SIZE="3"> and vice versa.</font></p>
+
+<p><font size="2"><b>Copyright (c) 2000 CUTS and contributers.&nbsp;</b></font></p>
+</body>
+</html>

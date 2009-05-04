@@ -1,0 +1,464 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+
+<head>
+<title>Release notes.</title>
+</head>
+
+<body bgcolor="#FFFFFF">
+<h2><font face="Arial"><strong>Release notes: Version 4.1.4 Release</strong></font></h2>
+<h3><strong><font face="Arial"><strong>New features and Changes</strong></font></strong></h3>
+<p><font face="Arial">Converted PolyML.dsw and PolyML.dsp to binary. This simplifies 
+  building from source on Windows.</font></p>
+<p><font face="Arial">The exception PolyML.Commit now has type string-&gt;exn.</font></p>
+<p><font face="Arial">PolyML.commit now raises PolyML.Commit if the database is 
+  read-only. </font></p>
+<p><font face="Arial">Timing functions no longer fail occasionally with getrusage: 
+  EINTR on Solaris (actually a work-around for a bug/documentation error in Solaris).</font></p>
+<h2><font face="Arial"><strong>Release notes: Version 4.1.3 Release</strong></font></h2>
+<h3><font face="Arial"><strong>New features and Changes</strong></font></h3>
+<p><font face="Arial"><strong>Printing control switches<br>
+  </strong>New switches have been added to the Poly/ML.Compiler structure to control 
+  the printing of declarations. In both cases the default setting is true. Setting 
+  PolyML.Compiler.printInAlphabeticalOrder causes declarations to be printed in 
+  the order in which they were made rather than in alphabetical order. Setting 
+  PolyML.Compiler.printTypesWithStructureName to false causes types to be printed 
+  without the structure from which they came.</font></p>
+<p><font face="Arial"><strong>Large database support</strong><br>
+  The support for large databases has been improved and it is now possible to 
+  create a database which will occupy all of the virtual memory reserved for it. 
+  The actual limits vary between operating systems and platforms but are typically 
+  around 400Mbytes.</font></p>
+<p><font face="Arial">To aid this the -S option when running the disc garbage-collector 
+  (-d option), introduced in 4.1.1, has been extended with -Smin and -Smax. The 
+  options can be written using either -s or -S and with or without a space. Setting 
+  a size is now &quot;sticky&quot; so if no -s/-S option is given the previous 
+  limits are retained rather than being reset to the default. The -Smax option 
+  sets the limits to the maximum space available. This space now depends only 
+  on the size reserved for any parent databases and not, as before, on the history 
+  of the database.</font></p>
+<p><font face="Arial">The -Smin option compacts the database into a size whose 
+  upper limit is set to the size actually in use before compaction. To make best 
+  use of it it is probably best to run it twice, once to compact the database 
+  and again to set the upper limits to the now reduced size. It is useful when 
+  a database has been created which will not be modified further but where child 
+  databases may be created. Compacting a database to the minimum size allows any 
+  child databases to occupy as much space as possible.</font></p>
+<p><font face="Arial"> The disc garbage collection has been changed so that it 
+  is now possible to use all the address space. Previously it was always necessary 
+  to reserve a certain portion of the space to allow the database to be collected.<br>
+  </font></p>
+<h3><font face="Arial"><strong>Bugs fixed</strong></font></h3>
+<p><strong><font face="Arial">Mac OS X 10.2<br>
+  </font></strong><font face="Arial, Helvetica, sans-serif">Mac OS X 10.2 introduced 
+  a undocumented change to the kernel interface when delivering signals. This 
+  meant that the original binaries will not run on 10.2. This has now been fixed.</font></p>
+<p><font face="Arial, Helvetica, sans-serif"><strong>Crash on delivering console 
+  interrupt on PowerPC</strong><br>
+  There was a bug in the Poly/ML process (lightweight thread) code on the PowerPC 
+  which caused a crash when a process terminated. This could happen when a user-installed 
+  signal handler was called, for example the console interrupt handler in Isabelle.</font></p>
+<p><font face="Arial, Helvetica, sans-serif"><strong>Crash in equality code</strong><br>
+  An error in the compilation of the equality function meant that certain expressions 
+  involving equality could cause a crash. This has been fixed.</font></p>
+<p><font face="Arial">&nbsp;</font></p>
+<h2><font face="Arial"><strong>Release notes: Version 4.1.2 Release</strong></font></h2>
+
+<h3><font face="Arial"><strong>New features and Changes</strong></font></h3>
+
+<p><font face="Arial"><strong>Flexible records (Pattern rows with record wildcards)<br>
+</strong>The Standard requires that a flexible record must be constrained to a fixed set
+of labels by the program context.&nbsp; It does not specify what that context should be.
+&nbsp; Previous versions of Poly/ML, along with most other compilers, have required the
+context to be the point at which the declaration containing the flexible record was
+generalised, often requiring a type constraint.&nbsp; For example:<br>
+<tt>let fun f {a, ...} = a in f{a=1,b=2} end</tt>;<br>
+was rejected.&nbsp; Poly/ML now allows the record to be constrained anywhere within the
+same topdec. </font></p>
+
+<p><font face="Arial">&nbsp;</font></p>
+
+<h3><font face="Arial"><strong>Bugs fixed</strong></font></h3>
+
+<p><font face="Arial"><strong>&quot;moveToVec - invalid constant address&quot;<br>
+</strong>The compiler failed with an exception and this message when trying to take apart
+a tuple which was known at compile time to be an exception.&nbsp; For example: let val
+(x,y) = raise Fail &quot;&quot; in x end; .</font></p>
+
+<p><font face="Arial"><strong>Infinite loop with unterminated input</strong><br>
+If an input stream contained an error (e.g. a syntax or type error) and ended without a
+newline Poly would go into an infinite loop.</font></p>
+
+<p><font face="Arial"><strong>Linux/i386 - Crashes with large heaps</strong><br>
+There were a number of crashes when the heap grew to several hundred megabytes as a result
+of it overwriting other data.&nbsp; The virtual address range used has now been changed.
+&nbsp; The maximum size of the heap on this architecture has also been increased to 1.1
+Gigabytes for the immutable heap and 256 Megabytes for the mutable.</font></p>
+
+<p><font face="Arial"><strong>Linux - Compiling</strong><br>
+The sources would not compile on some versions of Linux due to the use of
+&lt;sys/time.h&gt; instead of &lt;time.h&gt;.</font></p>
+
+<p><font face="Arial"><strong>Syntax of specifications and signature</strong><br>
+There were a number of cases where Poly/ML would not accept the full syntax of Standard ML
+97.&nbsp; Empty specifications were not accepted, signature declarations were not accepted
+after type declarations within the same topdec and multiple type abbreviations connected
+by &quot;and&quot; were not accepted.</font></p>
+
+<p><font face="Arial"><strong>Windows bitViewer example</strong><br>
+The bitViewer example contained a reference to the Base structure which has been removed,
+preventing it from compiling.</font></p>
+
+<p><font face="Arial"><strong>Interrupt exception while running the compiler</strong><br>
+Raising an Interrupt exception from the console at certain points within the compiler
+could result in confusing traceback information being printed.</font></p>
+
+<p><font face="Arial">&nbsp;</font></p>
+
+<h2><font face="Arial"><strong>Release notes: Version 4.1.1Release</strong></font></h2>
+
+<p><font face="Arial"><strong>Update on 5th November 2001(driver source only).&nbsp; Bug
+fix: Overflowing Poly stack could cause crash. </strong><br>
+A deeply or infinitely recursing function could result in a segmentation fault.&nbsp; It
+will now raise an Interrupt exception.</font></p>
+
+<p><font face="Arial"><strong>Update on 28th October 2001 (driver source only).&nbsp; Bug
+fix: Large heaps in Linux caused random errors. </strong><br>
+If the heap grew very large in Linux it could overwrite local variables, causing random
+failures.</font></p>
+
+<h3><font face="Arial"><strong>New features and Changes</strong></font></h3>
+
+<p><font face="Arial"><strong>Windows&#153; interface<br>
+</strong>This release includes structures to allow Windows graphical programs to be
+written in Poly/ML.&nbsp; See the <a href="Windows.html">Windows Programming in Poly/ML</a>
+and&nbsp; <a href="Winref/Reference.html">Windows Interface Reference</a> for more
+information.</font></p>
+
+<p><font face="Arial"><strong>Extensions to the Symbolic Debugger.</strong><br>
+The symbolic debugger introduced in version 4.1 has been extended.&nbsp; There are
+additional functions to step over a function and to step out.&nbsp; The debugger attempts
+to print the source line when it stops at a breakpoint.&nbsp; For this to work the source
+must have been compiled using a full path name or the debugger must be run in the same
+directory that the source was compiled in.&nbsp; The debugger now displays values from
+opened structures and in abstype declarations.</font></p>
+
+<p><font face="Arial"><strong>Printing top-level exceptions.</strong><br>
+When an exception is raised at the top-level the compiler now prints the parameters in the
+exception packet if the exception is declared at the top-level or in any top-level
+structure.&nbsp; Previously it would only print the parameters if the exception was
+declared unqualified at the top-level. <br>
+This is particularly useful for exceptions raised by the Standard Basis Library such as
+IO.Io and OS.SysErr.&nbsp; Previously if, for example, TextIO.openIn failed to open a file
+the only information available was that the Io exception had been raised.&nbsp; Now the
+parameters will be printed giving much more useful information.</font></p>
+
+<p><font face="Arial"><strong>Large databases.<br>
+</strong>Previous versions of Poly/ML had limits on the size of the database of around
+63Mbytes.&nbsp; This remains the default limit but larger databases are now possible, up
+to around 400Mbytes.&nbsp; To increase the limit it is necessary to run the disc garbage
+collector and specify the -S option.<br>
+e.g. poly -d -S 250 ML_dbase<br>
+This will compact the database and set the maximum size to 250Mbytes.&nbsp; Attempts to
+set the size to a value which is too large will fail with the message &quot;Not enough
+address spaces&quot;.&nbsp; The limit on the size depends on the current maximum database
+size (the larger the current size the smaller the new size may be) and is reduced if the
+database is a child database.<br>
+There are actually two limits on the size of a database: the mutable data size (space for
+refs and arrays) and the immutable data size (everything else) and a database cannot be
+expanded if either of these limits is reached.&nbsp; The space available is divided
+between these two in the ratio 1:8.&nbsp; There is currently no way of changing this.</font></p>
+
+<p><font face="Arial"><strong>CInterface structure</strong><br>
+Added unsigned integer conversions.&nbsp; Added functions to convert between
+Word8Vector.vector and C arrays.&nbsp; toCchar and fromCchar now convert between the ML
+char type and C char rather using the ML string type.</font></p>
+
+<h3><font face="Arial"><strong>Bugs fixed</strong></font></h3>
+
+<p><font face="Arial"><strong>Changes to representation of datatypes.<br>
+</strong>There was a potential bug in the way datatypes were implemented.&nbsp; Previously
+the representation of a datatype was implemented using static information about the number
+of constructors and their types.&nbsp; Various optimisations are possible if, for example,
+it is known that the only non-nullary constructor takes a tuple as an argument. &nbsp;
+These optimisations are not always possible if a datatype can be passed as an argument to
+a functor.&nbsp; Simon Finn pointed out that datatype replication could result in a
+datatype being passed into a functor in circumstances that was not possible in ML90.
+&nbsp; Rather than remove the optimisation the handling of datatypes has been changed so
+that constructors are passed as arguments to a functor.&nbsp; In practice these are
+optimised away if functors are expanded inline (the default setting).&nbsp; Because it is
+now possible to use the optimised representation in all cases the code is likely to be
+faster than before.</font></p>
+
+<p><font face="Arial"><strong>Correctly converts negative hexadecimal numbers<br>
+</strong>Previously values such as ~0x1 were always converted as zero.</font></p>
+
+<p><font face="Arial"><strong>Correctly prints singleton records</strong><br>
+Singleton records (e.g. {a=1}) were previously printed as {...}.</font></p>
+
+<p><font face="Arial"><strong>Some functions with side-effects were not evaluated if their
+results were not used</strong><br>
+For example, fun f s = (print s; true); fun p s = not (f s); val _ = p &quot;OK\n&quot;;
+did not work correctly in 4.1.&nbsp; This has been fixed.</font></p>
+
+<p><font face="Arial"><strong>Changes to allow compilation on Solaris 6.<br>
+</strong>There was a problem compiling the sources in older versions of Solaris.</font></p>
+
+<p>&nbsp;</p>
+
+<h2><a name="4.1"></a><font face="Arial"><strong>Release notes: Version 4.1 Experimental</strong></font></h2>
+
+<h3><font face="Arial"><strong>Bugs fixed</strong></font></h3>
+
+<p><font face="Arial"><strong>Exception matching in val bindings.<br>
+</strong>Previous releases contained a bug in the processing of val bindings when the
+pattern was an exception constructor.</font></p>
+
+<p><font face="Arial"><strong>Closing Standard Output.</strong><br>
+Closing standard output caused an infinite loop in previous versions.</font></p>
+
+<h3><strong><font face="Arial" color="#000000">Changes since </font><font face="Arial">Version
+4.0 Release</font></strong></h3>
+
+<p><font face="Arial"><strong>Source Level Debugger.<br>
+</strong>This release includes a source level debugger which allows the use to set and
+clear breakpoints and view local variables.&nbsp; Code compiled for use with the debugger
+can be freely mixed with other code.&nbsp; See <a href="Debugging.html">here</a> for a
+full description.&nbsp; A PolyML.Debug structure has been added and a
+PolyML.Compiler.debug flag.</font></p>
+
+<p><font face="Arial"><strong>Free type variables.</strong><br>
+The language definition says that no free type variables may enter the basis but leaves it
+to the implementer whether to refuse elaboration or instead replace the type variables by
+monotypes.&nbsp; Version 4.0 refused to elaborate expressions such as<br>
+fun f () = raise Fail &quot;error&quot;; f();<br>
+Version 4.1 allows it to elaborate but produces a warning message.&nbsp; The result is
+bound to a unique monotype distinct from any other type in the basis.</font></p>
+
+<p><font face="Arial"><strong>Substantial changes to the optimiser.<br>
+</strong>The optimiser has been substantially changed so that many more cases can be
+compiled in-line.&nbsp; Small tail-recursive functions, such as List.foldl, are now
+compiled as while-loops within the calling functions.&nbsp;&nbsp; Small recursive
+functions which are not tail-recursive, such as List.map, are compiled as specialised
+functions so that the function being mapped is inserted into the specialised function.
+&nbsp; When mapping a small function over a list this can produce big improvements by
+avoiding the need for a function call for each element of the list.&nbsp; Applying these
+optimisations and a few others within the compiler itself has produced a substantial speed
+up.</font></p>
+
+<p><font face="Arial"><strong>Formatting of pretty-printed output.</strong><br>
+The format used when printing top-level expressions, particularly structures and functors,
+has been improved to give a more consistent appearance.</font></p>
+
+<p><font face="Arial"><strong>Tuples as results</strong>.<br>
+Previous versions of the compiler allocated memory to contain tuples returned from
+functions or even from an if-expression.&nbsp; This version now allocates store on the
+stack to receive the results, reducing the load on the garbage collector.</font></p>
+
+<p><font face="Arial"><strong>Improvement to TextIO.</strong><br>
+The TextIO structure is defined as imperative operations on top of the functional IO
+layer.&nbsp; Implementing it in this way, though, turned out to be inefficient if the
+functional layer was not used.&nbsp; TextIO has now been rewritten so that if
+TextIO.getInstream is never called on a stream it can be handled entirely within the
+imperative layer.</font></p>
+
+<p><font face="Arial"><strong>Specialised equality functions.</strong><br>
+Previous releases contained specialised code for equality for a few built-in types such as
+int and string but defaulted to the general structure equality in more general cases.
+&nbsp; The compiler now generates functions for equality in most cases.&nbsp; Because of
+the changes to the optimiser these will usually be compiled in-line even when operating on
+recursive types such as lists.&nbsp; This is most successful when the compiler has
+specific type information so the addition of a cast may well speed up a function.
+&nbsp;&nbsp; </font></p>
+
+<p><font face="Arial"><strong>X-Windows/Motif - new functions.</strong><br>
+The following functions have been added to the Motif structure:</font><br>
+val XtGetApplicationResources: Widget -&gt; (string * string * XmRType) list -&gt; Arg
+list <br>
+val XtAddEventHandler: &gt; Widget -&gt; XWindows.EventMask list -&gt; bool -&gt; (Widget
+* 'a XWindows.XEvent -&gt; unit) -&gt; unit<br>
+val XmMenuPosition: Widget -&gt; 'a XWindows.XEvent -&gt; unit</p>
+
+<p><font face="Arial"><strong>Assignment to references in the database.<br>
+</strong>Older versions of the compiler always made calls to the run-time system to handle
+assignment.&nbsp; In version 4.0 this was changed so that the assignment operation was
+compile in-line, speeding up imperative functions when the reference being updated was
+local.&nbsp; If the reference was in the database assignment involved a trap and the
+assignment was emulated by the run-time system.&nbsp; This has now been changed so that
+there is only a trap the first time a reference is updated.&nbsp; More specifically,
+references in the database are packed into pages and if any of the references in a page
+are updated the whole page is marked &quot;dirty&quot; and no further traps will occur for
+that page. <br>
+The format of a database has changed slightly as a result so version 4.1 databases may
+only be used with a run-time system built for this version.</font></p>
+
+<p><font face="Arial"><strong>Low-level code-generation.</strong><br>
+Various changes have been made to the low-level code-generators, particularly in the
+handling of constants and calls to functions which are known at compile-time.&nbsp; The
+code-generators now generate code for more functions such as Word.* which previously
+required calls to the run-time system.&nbsp;&nbsp; Functions now contain information about
+the registers they modify to reduce the need to save registers across calls.</font></p>
+
+<p><font face="Arial"><strong>Mac OS/X</strong><br>
+Real number rounding control (IEEEReal.getRoundingMode and IEEEReal.setRoundingMode) has
+now been added to the Mac OS/X version&nbsp; of Poly/ML 4.1.&nbsp; This version has been
+tested with the release version of Mac OS/X.&nbsp; The foreign function interface
+(CInterface structure), time profiling (PolyML.profiling 1) and polling (OS.IO.poll) do
+not work in Mac OS/X.</font></p>
+
+<p><a name="4.1Update"></a><font face="Arial"><strong>Update on 25th April 2001.&nbsp;
+Slow &quot;commit&quot; and database compaction in Linux and Solaris</strong><br>
+There was a problem with writing to the database which appeared in some versions of Unix.
+&nbsp; This was particularly noticeable on machines with slow discs or where the database
+was accessed over a network.&nbsp; A revised version of the driver sources has now been
+installed to correct this problem.</font></p>
+
+<p><font face="Arial"><strong>Update on 3rd May 2001.&nbsp; Bug fix: Corrupted parent
+database file name. </strong><br>
+When running the disc garbage collector on a child database in Mac OS X the parent file
+name became corrupted.</font></p>
+
+<p><font face="Arial"><strong>Update on 3rd May 2001.&nbsp; Fix to allow compilation on
+Mac OS X with X-Windows/Motif</strong>.</font></p>
+
+<h2><a name="4.0"></a><font face="Arial"><strong>Release notes: Version 4.0 Release</strong></font></h2>
+
+<h3><font face="Arial"><strong>Bugs fixed since Version 4.0 beta1</strong></font></h3>
+
+<p><font face="Arial" color="#000000"><strong>Negative integers printed strangely.</strong><br>
+Bug in Version 4.0 beta1: Negative numbers printed as large positive numbers.</font></p>
+
+<p><font face="Arial" color="#000000"><strong>Files were created with execute permission.</strong><br>
+The default creation mask for files was 777 (read, write and execute permission). &nbsp;
+This has been changed to 666 (read and write permission).</font></p>
+
+<p><font face="Arial" color="#000000"><strong>i386 code-generator bug.</strong><br>
+A bug was found in the i386 code-generator which among other things caused Poly/ML to
+crash when given an integer in hexadecimal (e.g. 0x1).</font></p>
+
+<p><font face="Arial" color="#000000"><strong>Linux:&nbsp; Typing control-C would
+sometimes cause a crash.</strong><br>
+Poly/ML would sometimes crash if control-C was pressed.&nbsp;&nbsp; This was highly
+timing-dependent and occurred only if the SIGINT arrived at the same time as another
+signal such as a SIGSEGV used to indicate a garbage-collection or arbitrary-precision
+emulation trap.</font></p>
+
+<p>&nbsp;</p>
+
+<h3><strong><font face="Arial" color="#000000">Changes since </font><font face="Arial">Version
+4.0 beta1</font></strong></h3>
+
+<p><font face="Arial"><strong>The default for print depth is now 100.<br>
+</strong>The default value for PolyML.print_depth is now 100 instead of 1.</font></p>
+
+<p><font face="Arial"><strong>Power architecture version now fully supported.</strong> <br>
+The Power architecture is now supported under MacOS-X beta and LinuxPPC. </font></p>
+
+<p><font face="Arial"><strong>Removed various exceptions from the PolyML structure.</strong><br>
+The Interrupt, Div, Bind, Match, Size, Overflow, Underflow and Subscript exceptions have
+been removed from the PolyML structure.&nbsp; These are either free in the basis or are in
+the SML90 structure. </font></p>
+
+<p><strong><font face="Arial">X-Windows/Motif now compiles with LessTif and OpenMotif.</font></strong></p>
+
+<p><font face="Arial"><strong>Sparc/Solaris: Removed check that the whole of the address
+space was available.</strong><br>
+The Sparc/Solaris version attempts to reserve a very large region of memory to prevent any
+other library from allocating within the area that Poly/ML might use for its heap. &nbsp;
+This caused problems if there was a limit on the amount of virtual memory that a program
+could reserve and has been removed.</font></p>
+
+<p><font face="Arial"><strong>Links as &quot;discgarb&quot; and &quot;changeParent&quot;
+now work for path names.</strong><br>
+For backwards compatibility it is possible to create a link to the poly executable called
+&quot;discgarb&quot; and invoke the program through that rather than specify the -d option
+to poly.&nbsp; This previously worked only if the program was invoked as
+&quot;discgarb&quot; not as, for example, &quot;/usr/bin/discgarb&quot;.&nbsp; This has
+now been changed so that only the last component of the name is examined.</font></p>
+
+<p>&nbsp;</p>
+
+<h2><a name="4.0beta1"></a><font face="Arial"><strong>Release notes: Version 4.0 beta1</strong></font></h2>
+
+<h3><font face="Arial"><strong>Bugs fixed since Beta 4.0</strong></font></h3>
+
+<p><font face="Arial" color="#000000"><strong>&quot;InternalError: equality - Overloadset
+found raised while compiling</strong>&quot;<br>
+This message was produced when compiling certain combinations of overloaded functions and
+equality.</font></p>
+
+<p><font face="Arial" color="#000000"><strong>Failed to compile properly on RedHat 6.2 and
+other recent versions of Linux</strong><br>
+The SRPM version of the 4.0 beta release would compile on RedHat 6.2, provided a few
+changes were made to the sources but the resulting binary crashed.</font></p>
+
+<p><font face="Arial" color="#000000"><strong>StringCvt.padLeft and padRight crashed when
+applied to single character strings</strong><br>
+These functions caused a page fault when applied to strings containing a single character.</font></p>
+
+<h3><strong><font face="Arial" color="#000000">Changes since Beta 4.0</font></strong></h3>
+
+<p><font face="Arial"><strong>Introduced the POLYPATH environment variable to allow
+databases to be found using a path.</strong><br>
+When searching for a database, whether given on the command line or to find the parent of
+a child database, poly searches using the path given in the POLYPATH environment variable.
+&nbsp; On most platforms it defaults to &quot;.:/usr/lib/poly:./usr/local/lib/poly&quot;
+meaning that when searching for a database called &quot;dbase&quot; it will first look in
+the current directory and if that fails look for /usr/lib/poly/dbase and finally
+/usr/local/lib/poly/dbase before giving up.&nbsp; Setting the POLYPATH to an explicit path
+allows the user to specify where databases are to be found.</font></p>
+
+<p><font face="Arial">As a result of this change poly now defaults to searching for a
+database called ML_dbase in the path if no database is given on the command line. &nbsp;
+The restriction that a child database can only be created if the parent path name is fully
+specified has been removed.</font></p>
+
+<p><font face="Arial"><strong>Removed discgarb and changeParent.</strong><br>
+The discgarb and changeParent programs have been removed and the functionality
+incorporated into the poly program.&nbsp; New options have been added to poly.&nbsp; The
+'-d' option compacts a database in the manner of discgarb.&nbsp; An additional option '-c'
+can be used to run the </font><font size="3" face="Arial">common-expression elimination
+phase.&nbsp; The '-p' option changes the parent of a database as with changeParent. &nbsp;
+The old behaviour can be retained by creating links to the poly binary called discgarb and
+changeParent and invoking the binary through these names.</font></p>
+
+<p><font face="Arial"><strong>Changed TextIO.stdOut to use line buffering.</strong><br>
+In Beta 4.0 this was unbuffered.</font></p>
+
+<p><font face="Arial"><strong>Added interruptConsoleProcesses to the Process structure.</strong><br>
+Process.interruptConsoleProcesses() causes all console process to be sent the
+SML90.Interrupt exception.&nbsp;&nbsp; Usually there will only be one console process, the
+top-level loop which runs the compiler and executes the code.</font></p>
+
+<p>&nbsp;</p>
+
+<h2><a name="4.0beta"></a><font face="Arial"><strong>Version 4.0 beta</strong></font></h2>
+
+<p><font face="Arial">Features and changes in this release.</font></p>
+
+<h3><font face="Arial">Supports ML97</font></h3>
+
+<p><font face="Arial">The revised definition of Standard ML (ML97) introduced a &nbsp;
+number of changes.&nbsp; Poly/ML now implements this version of the language. &nbsp; Some
+of the old (ML90) features are available by setting </font><tt>PolyML.Compiler.ml90</tt><font face="Arial"> to </font><tt>true</tt><font face="Arial">.&nbsp; The major changes include
+value polymorphism, which removes the need for imperative type variables and changes to
+the way structure sharing is handled.&nbsp; Type abbreviations in signatures and datatype
+replication are also included.</font></p>
+
+<h3><font face="Arial">Supports the Standard Basis Library</font></h3>
+
+<p><font face="Arial">The <a href="StandBasis.html">Standard Basis Library</a> is a suite
+of modules which provides a standard set of functions for many purposes as well as access
+to many operating system facilities.&nbsp; </font></p>
+
+<h3><font face="Arial">Other changes</font></h3>
+
+<p><font face="Arial">Linux: supports larger database size.<br>
+  Values are printed in alphabetical order.<br>
+  Various code-generator changes and fixes.<br>
+  Windows: the console is replaced by a Windows-style console.<br>
+  <a href="Signal.html">Signal structure allows signals to be handled or blocked</a>.</font></p>
+
+</body>
+</html>

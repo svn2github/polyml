@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+
+<head>
+<title>Using Poly/ML - Chapter 6: PolyML.Compiler </title>
+</head>
+
+<body>
+
+<h1><font SIZE="6"><a name="PolyML.Compiler6">Chapter 6: PolyML.Compiler</a></font></h1>
+
+<p><font SIZE="3">This chapter describes the </font><b><font FACE="Courier" SIZE="3">PolyML.Compiler</font></b><font SIZE="3"> substructure. This structure contains a collection of items which can be used to
+modify the behaviour of the Poly/ML compiler.</font></p>
+
+<h2><b><font SIZE="4"><a name="Compilerflags6.1">6.1 Compiler flags</a></font></b></h2>
+
+<p><b><font FACE="Courier" SIZE="3">val promptl : string ref<br>
+val prompt2 : string ref</font></b></p>
+
+<p><b><font FACE="Courier" SIZE="3">val useRCS : bool ref<br>
+val suffixes : string list ref</font></b></p>
+
+<p><b><font FACE="Courier" SIZE="3">val maxInlineSize : int ref<br>
+val assemblycode : bool ref</font></b></p>
+
+<p><b><font FACE="Courier" SIZE="3">prompt1</font></b><font SIZE="3"> is the primary
+prompt string (default </font><font FACE="Courier" SIZE="3">&quot;&gt; &quot;</font><font FACE="Times" SIZE="3">) </font><font SIZE="3">used by Poly/ML. Assigning a new value to
+this ref alters the primary prompt. For example:</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">&gt; PolyML.Compiler.promptl := &quot;a longer
+prompt&quot;;<br>
+val it = () : unit<br>
+a longer prompt&gt; 1 + 1; <br>
+val it = 2 : int <br>
+a longer prompt&gt;</font></b></p>
+
+<p><b><font FACE="Courier" SIZE="3">prompt2</font></b><font SIZE="3"> is the secondary
+prompt string (default </font><font FACE="Courier" SIZE="3">&quot;# &quot;</font><font FACE="Times" SIZE="3">).</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">useRCS</font></b><font SIZE="3"> determines whether
+the <a href="Make7.html">Poly/ML make system</a> attempts to make use of the RCS code
+control system.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">suffixes</font></b><font SIZE="3"> is the list of
+suffixes (default </font><font FACE="Courier" SIZE="3"><b>[&quot;&quot;, &quot;.ML&quot;,
+&quot;.sml&quot;]</b></font><font SIZE="3">)<b> </b>used by the Poly/ML make system when
+it tries to find the source file containing an ML functor, structure or signature. (See
+chapter 7 for more details).</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">maxInlineSize</font></b><font SIZE="3"> is used by the
+Poly/ML optimiser to determine whether a particular ML function should compiled 'in-line'.
+Each call to an in-line function will be expanded in place</font><font SIZE="1"> </font><font SIZE="3">which should generate faster (but probably larger) assembly code. Increasing the
+value of this variable allows more functions to be compiled in-line. Values in the range
+10 - 40 tend to produce the<b> </b>most reasonable trade-offs between code size, compile
+time and execution time.</font></p>
+
+<p><b><font FACE="Courier" SIZE="3">assemblyCode</font></b><font SIZE="3"> controls
+whether the compiler prints an assembly-code listing of each function it compiles. Don't
+set this flag unless you want to debug the compiler!</font></p>
+
+<h2><b><font SIZE="4"><a name="Forgetfunctions6.2">6.2 Forget functions</a></font></b></h2>
+
+<p><font SIZE="3">The following functions are provided to deal with the problem of
+name-space pollution:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val typeNames : unit -&gt; string list<br>
+val forgetType : string -&gt; unit<br>
+val forgetTypesExcept : string list -&gt; unit</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val valueNames : unit -&gt; string list<br>
+val forgetValue : string -&gt; unit<br>
+val forgetValuesExcept : string list -&gt; unit</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val signatureNames : unit -&gt; string list<br>
+val forgetSignature : string -&gt; unit<br>
+val forgetSignaturesExcept : string list -&gt; unit</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val structureNames : unit -&gt; string list<br>
+val forgetStructure : string -&gt; unit<br>
+val forgetStructuresExcept : string list -&gt; unit</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val functorNames : unit -&gt; string list<br>
+val forgetFunctor : string -&gt; unit<br>
+val forgetFunctorsExcept : string list -&gt; unit</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val forgetMakeInfo : string -&gt; unit</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val fixityNames : unit -&gt; string list<br>
+val forgetFixity : string -&gt; unit</b></font></p>
+
+<p><font SIZE="3">The functions </font><font FACE="Courier" SIZE="3"><b>typeNames</b></font><font SIZE="3">, </font><b><font FACE="Courier" SIZE="3">valueNames</font></b><font SIZE="3">, </font><b><font FACE="Courier" SIZE="3">signatureNames</font></b><font SIZE="3">, </font><b><font FACE="Courier" SIZE="3">structureNames</font></b><font SIZE="3"> and </font><font FACE="Courier" SIZE="3"><b>functornames</b></font><font SIZE="3"> each return a list of
+strings. This list contains all the names in the corresponding top-level ML name-space. In
+addition, <b>fixityNames </b>returns the list of identifiers than have been explicitly
+declared to be <b>infix, infixr </b>or <b>nonfix.</b></font></p>
+
+<p><font SIZE="3">The </font><b><font FACE="Courier" SIZE="3">forgetXXXX</font></b><font SIZE="3"> functions each remove a name from the corresponding top-level name-space. If the
+name isn't defined in the top-level name-space, these functions raise a (currently
+undocumented) exception.</font></p>
+
+<p><font SIZE="3">The </font><b><font FACE="Courier" SIZE="3">forgetXXXXExcept</font></b><font SIZE="3"> functions each remove all the names <b>except </b>those listed from the
+corresponding top-level name-space.</font></p>
+
+<p><font SIZE="3">The function </font><b><font FACE="Courier" SIZE="3">forgetMakeInfo</font></b><font SIZE="3"> deletes the <a href="Make7.html">Poly/ML make system's</a> compilation record
+for a particular signature, structure or functor. This ensures that the next make of that
+object will actually recompile it.</font></p>
+
+<p><font FACE="Times" SIZE="3"><b>Note: </b>the forget functions don't interact well with
+the database hierarchy, since they can't forget a name that is inherited from a parent
+database's name-space. In addition, forgetting a name in a child database may reveal a
+value in the parent database that was previously hidden.</font></p>
+
+<p><font size="2"><b>Copyright (c) 2000 CUTS and contributers.&nbsp; </b></font></p>
+</body>
+</html>

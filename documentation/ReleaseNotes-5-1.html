@@ -1,0 +1,98 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+	"http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>Version 5 Release Notes</title>
+</head>
+<body bgcolor="#FFFFFF">
+<script language="JavaScript" type="text/javascript"><!--
+Allowhover = 
+  (((navigator.appName == "Netscape") && 
+  (parseInt(navigator.appVersion) >= 3 )) || 
+  ((navigator.appName == "Microsoft Internet Explorer") && 
+  (parseInt(navigator.appVersion) >= 4 ))); 
+
+function Imagepreload(img) 
+{
+  var a=new Image(); a.src=img; return a; 
+}
+if(Allowhover) {
+	Homen=Imagepreload('../images/HomeButton.gif');
+	Homeh=Imagepreload('../images/HomeButton1.gif'); 
+	Aboutn=Imagepreload('../images/AboutButton.gif');
+	Abouth=Imagepreload('../images/AboutButton1.gif'); 
+	Supportn=Imagepreload('../images/SupportButton.gif');
+	Supporth=Imagepreload('../images/SupportButton1.gif'); 
+	Getn=Imagepreload('../images/GetButton.gif');
+	Geth=Imagepreload('../images/GetButton1.gif'); 
+	Docn=Imagepreload('../images/DocButton.gif');
+	Doch=Imagepreload('../images/DocButton1.gif'); 
+}
+// --></script>
+<table border="0">
+  <tr> 
+    <td valign="top"><table border="0" cellspacing="0" cellpadding="0">
+        <tr> 
+          <td><a href="../index.html" onmouseover="if(Allowhover) document['Home'].src=Homeh.src; return true" onmouseout="if(Allowhover) document['Home'].src=Homen.src; return true"><img name="Home" src="../images/HomeButton.gif" alt="Poly/ML Home" border="0" WIDTH="113" HEIGHT="43"></a></td>
+        </tr>
+        <tr> 
+          <td><a href="../FAQ.html" onmouseover="if(Allowhover) document['About'].src=Abouth.src; return true" onmouseout="if(Allowhover) document['About'].src=Aboutn.src; return true"><img name="About" src="../images/AboutButton.gif" alt="About Poly/ML" border="0" WIDTH="113" HEIGHT="43"></a></td>
+        </tr>
+        <tr> 
+          <td><a href="../support.html" onmouseover="if(Allowhover) document['Support'].src=Supporth.src; return true" onmouseout="if(Allowhover) document['Support'].src=Supportn.src; return true"><img name="Support" src="../images/SupportButton.gif" alt="Support for Poly/ML" border="0" WIDTH="113" HEIGHT="43"></a></td>
+        </tr>
+        <tr> 
+          <td><a href="../Doc.html" onmouseover="if(Allowhover) document['Doc'].src=Doch.src; return true" onmouseout="if(Allowhover) document['Doc'].src=Docn.src; return true"><img name="Doc" src="../images/DocButton.gif" alt="Documentation" border="0" WIDTH="113" HEIGHT="43"></a></td>
+        </tr>
+        <tr> 
+          <td><a href="../download.html" onmouseover="if(Allowhover) document['Get'].src=Geth.src; return true" onmouseout="if(Allowhover) document['Get'].src=Getn.src; return true"><img name="Get" src="../images/GetButton.gif" alt="Get Poly/ML" border="0" WIDTH="113" HEIGHT="43"></a></td>
+        </tr>
+      </table></td>
+    <td valign="top"> <h2><font face="Arial, Helvetica, sans-serif"><strong>Poly/ML 
+        Version 5.1</strong></font></h2>
+      <p><strong><font face="Arial, Helvetica, sans-serif"><strong>Major New Features</strong></font></strong></p>
+      <ul>
+        <li><font face="Arial, Helvetica, sans-serif">True multi-threading</font></li>
+        <li><font face="Arial, Helvetica, sans-serif">Saving state</font></li>
+      </ul>
+      <p><font face="Arial, Helvetica, sans-serif"><strong>Minor Additions and 
+        Changes </strong></font></p>
+      <ul>
+        <li><font face="Arial, Helvetica, sans-serif">Support for building Windows 
+          version on msys.</font></li>
+        <li><font face="Arial, Helvetica, sans-serif">Support for building interpreted 
+          version for ARM processor.</font></li>
+        <li><font face="Arial, Helvetica, sans-serif">Changes to some message 
+          values in the Windows interface structure. The type of Windows callback 
+          functions has changed.</font></li>
+        <li><font face="Arial, Helvetica, sans-serif">Addition of Int32 structure 
+          and TEXT_IO signature to the basis library.</font></li>
+        <li><font face="Arial, Helvetica, sans-serif">Support for building Sparc 
+          version on Linux.</font></li>
+        <li><font face="Arial, Helvetica, sans-serif">SIGALRM is no longer used 
+          by the run-time system.</font></li>
+      </ul>
+      <p><strong><font face="Arial, Helvetica, sans-serif"><strong>Bug Fixes</strong></font></strong></p>
+      <ul>
+        <li><font face="Arial, Helvetica, sans-serif">Now builds on Mac OS X 10.5 
+          (Leopard)</font></li>
+        <li><font face="Arial, Helvetica, sans-serif">Fix for Sparc Solaris 10 
+          which would crash because Poly/ML used the g7 register</font></li>
+        <li><font face="Arial, Helvetica, sans-serif">Added signature constraints 
+          after structure values (strexp: sigexp)</font></li>
+        <li><font face="Arial, Helvetica, sans-serif">Word8Array.vector produced 
+          wrong value when applied to an empty array.</font></li>
+        <li><font face="Arial, Helvetica, sans-serif">Fix to type of Real.fromDecimal 
+          and changes to handling of overflow in conversion of strings to reals.</font></li>
+        <li><font face="Arial, Helvetica, sans-serif">Fix to Word32.~ and addition 
+          of overload for it.</font></li>
+        <li><font face="Arial, Helvetica, sans-serif">Fix to start-up code on 
+          PowerPC which could cause a crash under some C compilers.</font></li>
+      </ul>
+      <p>&nbsp;</p>
+      <p><font size="-1" face="Arial, Helvetica, sans-serif">DCJM 22nd November 
+        2007</font></p></td>
+  </tr>
+</table>
+</body>
+</html>

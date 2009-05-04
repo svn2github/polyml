@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+
+<head>
+<title>Using Poly/ML - Chapter 3: Poly/ML I/O Facilities </title>
+</head>
+
+<body>
+
+<h1><font SIZE="6"><a name="IO3">Chapter 3: Poly/ML I/O Facilities</a></font></h1>
+
+<p><font face="Times" size="3">This chapter has been superseded by the standard basis
+library.&nbsp; The functions in the BasicIO structure are still available in the SML90
+structure but where possible the TextIO structure should be used instead.</font></p>
+
+<h2><a name="BasicIO3.1"><font SIZE="4">3.1<b> BasicIO</b></font></a></h2>
+
+<p><font FACE="Times" SIZE="3">The structure </font><font FACE="Courier" SIZE="3"><b>BasicIO</b></font><font FACE="Times" SIZE="3"> provides basic I/O facilities as prescribed by the ML Standard.
+These are:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>type instream<br>
+type outstream</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val std_in: instream<br>
+val std_out: outstream</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val input: instream * int -&gt; string<br>
+val output: outstream * string -&gt; unit</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val open_in: string -&gt; instream<br>
+val open_out: string -&gt; outstream</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val close_in: instream -&gt; unit<br>
+val close_out: outstream -&gt; unit</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val lookahead: instream -&gt; string<br>
+val end_of_stream: instream -&gt; bool</b></font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>exception Io of string</b></font></p>
+
+<p><font SIZE="3">All of the above functions are also available directly at the top-level
+as they form part of the Initial Basis; it is<b> </b>not necessary to open the structure </font><font FACE="Courier" SIZE="3"><b>BasicIO</b> </font><font SIZE="3">in order to use them.</font></p>
+
+<p><font SIZE="3">The type </font><font FACE="Courier" SIZE="3"><b>instream</b> </font><font SIZE="3">is the type of input streams; </font><font FACE="Courier" SIZE="3"><b>outstream</b></font><font SIZE="3"> corresponds to output streams. Essentially, anything belonging to either of
+these types is a file descriptor.</font></p>
+
+<p><font SIZE="3">The two values </font><font FACE="Courier" SIZE="3"><b>std_in</b> </font><font SIZE="3">and </font><font FACE="Courier" SIZE="3"><b>std_out</b> </font><font SIZE="3">are
+predefined streams, corresponding to the keyboard and terminal respectively (unless
+redirected by Unix).</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>output(std_out,&quot;hello world\n&quot;);</b></font></p>
+
+<p><font SIZE="3">will write the string 'hello world' on the terminal.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>input(std_in,n);</b></font></p>
+
+<p><font SIZE="3">will read </font><font FACE="Courier" SIZE="3"><b>n</b> </font><font SIZE="3">characters from the terminal, returning them as a string. If fewer than </font><font FACE="Courier" SIZE="3"><b>n</b> </font><font SIZE="3">characters are available, the
+function will wait for more input, unless </font><font FACE="Courier" SIZE="3"><b>&lt;control-D&gt;</b></font><font SIZE="3"> (or whatever is the local end-of-file indicator) is typed, in which case the
+function will return however many characters are available.</font></p>
+
+<p><font SIZE="3">Calling </font><font FACE="Courier" SIZE="3"><b>open_in
+&quot;myfile&quot;</b></font><font SIZE="3"> will open the Unix file </font><font FACE="Courier" SIZE="3"><b>myfile</b></font><font SIZE="3"> for input, returning the
+file-descriptor. The function </font><font FACE="Courier" SIZE="3"><b>open_out</b> </font><font SIZE="3">is used to create new output streams; again the string is a Unix file name. </font><font FACE="Courier" SIZE="3"><b>close_in</b></font><font SIZE="3"> and </font><font FACE="Courier" SIZE="3"><b>close_out </b></font><font SIZE="3">are the corresponding
+'close' functions.</font></p>
+
+<p><font SIZE="3">The function </font><font FACE="Courier" SIZE="3"><b>end_of_stream</b></font><font SIZE="3"> is used to detect the end of an input stream; </font><b><font FACE="Courier" SIZE="3">end_of_stream</font><font SIZE="3"> </font><font FACE="Courier" SIZE="3">is</font></b><font SIZE="3"> returns <b>true </b>when no further input is possible on the input stream </font><font FACE="Courier" SIZE="3"><b>is</b></font><font SIZE="3">.</font></p>
+
+<p><font SIZE="3">If the stream </font><font FACE="Courier" SIZE="3"><b>is</b> </font><font SIZE="3">has terminated, then </font><font FACE="Courier" SIZE="3"><b>lookahead is</b></font><font SIZE="3"> returns the empty string. Otherwise it returns a one-character string,
+containing the next character to be read from the stream <i>without</i> removing the
+character from the stream.</font></p>
+
+<p><font SIZE="3">The exception </font><font FACE="Courier" SIZE="3"><b>Io</b></font><font SIZE="3"> is raised when an impossible I/O operation is attempted; for example, trying </font><font FACE="Courier" SIZE="3"><b>open_in &quot;bad&quot;</b> </font><font SIZE="3">if no file </font><font FACE="Courier" SIZE="3"><b>bad</b> </font><font SIZE="3">exists.</font></p>
+
+<h2><font SIZE="4"><a name="ExtendedIO3.2">3.2 <b>ExtendedIO</b></a></font></h2>
+
+<p><font SIZE="3">The structure </font><font FACE="Courier" SIZE="3"><b>ExtendedIO</b> </font><font SIZE="3">provides some non-standard (but very useful) I/O facilities. These are:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>val is_term_in : instream -&gt; bool<br>
+val is_term_out : outstream -&gt; bool<br>
+val open_append : string -&gt; outstream<br>
+val can_input : instream * int -&gt; bool<br>
+val input_line : instream -&gt; string<br>
+val flush_out : outstream -&gt; unit<br>
+val execute : string -&gt; instream * outstream</b></font></p>
+
+<p><font SIZE="3">The functions </font><font FACE="Courier" SIZE="3"><b>ExtendedIO.is_term_in</b></font><font SIZE="3"> and </font><font FACE="Courier" SIZE="3"><b>ExtendedIO.is_term_out</b></font><font SIZE="3"> test whether the supplied input or output streams are currently connected to a
+terminal.</font></p>
+
+<p><font SIZE="3">The function </font><font FACE="Courier" SIZE="3"><b>ExtendedIO.open_append</b></font><font SIZE="3"> is similar to </font><font FACE="Courier" SIZE="3"><b>BasicIO.open_out</b></font><font SIZE="3"> except that the stream is opened in 'append' mode; if the named file already
+exists then subsequent output is appended to it, instead of replacing it.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>ExtendedIO.can_input(is,n); </b></font></p>
+
+<p><font SIZE="3">returns </font><font FACE="Courier" SIZE="3"><b>true</b></font><font SIZE="3"> if </font><font FACE="Courier" SIZE="3"><b>n</b></font><font SIZE="3">
+characters are immediately available to be read from the input stream </font><font FACE="Courier" SIZE="3"><b>is</b></font><font SIZE="3">.</font></p>
+
+<p><font SIZE="3">The function </font><b><font FACE="Courier" SIZE="3">ExtendedIO.input_line</font></b><font SIZE="3"> reads characters from an input stream until a newline or the end of file is
+reached. In the first case the returned string will end with a newline.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>ExtendedIO.flush_out os</b> </font><font SIZE="3">writes
+out any buffered data for the output stream </font><b><font FACE="Courier" SIZE="3">os</font></b><font SIZE="3">. </font><font FACE="Courier" SIZE="3"><b>BasicIO.close_out</b> </font><font SIZE="3">performs an </font><font FACE="Courier" SIZE="3"><b>ExtendedIO.flush_out</b> </font><font SIZE="3">before closing an outstream. By default, an outstream connected to a terminal
+will be line-buffered, whilst an outstream connected to a file or pipe is block-buffered.</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>ExtendedIO.execute</b> </font><font SIZE="3">creates a
+child Unix process with the stdin of the child connected to the outstream, and the stdout
+of the child connected to the instream via pipes. The string is the name of the command to
+execute. For example:</font></p>
+
+<p><font FACE="Courier" SIZE="3"><b>&gt; val (is,os) = ExtendedIO.execute
+&quot;date&quot;;<br>
+val is = ? : instream val os = ? : outstream<br>
+&gt; ExtendedIO.input-line is;<br>
+&gt; val it = &quot;Thu Jun 4 09:33:37 BST 1999\n&quot; : string</b></font></p>
+
+<p><font size="2"><b>Copyright (c) 2000 CUTS and contributers.&nbsp;</b></font></p>
+</body>
+</html>
