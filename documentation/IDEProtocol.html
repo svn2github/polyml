@@ -148,25 +148,42 @@
   'sourcename' is the name to be used as the file name when reporting locations.<br>
   'startposition' is the value to be used as the initial offset in the file. The 
   usual case is that this is zero or null string which is taken as zero.</p>
-<p>Poly/ML responds with a result block. The result block consists of<br>
-  ESC 'R' result ESC ',' finaloffset errors ESC-r (N.B. No separator after 'finalposition').<br>
+<p>Poly/ML responds with a result block. The format of the result block depends 
+  on the result of the compilation and possible execution of the code. The basic 
+  result block consists of<br>
+  ESC 'R' result ESC ',' finaloffset ESC-r if there are no other results or<br>
+  ESC 'R' result ESC ',' finaloffset ESC ',' extraresults ESC-r in other cases<br>
   &quot;result&quot; is a single character indicating success or failure.<br>
-  'finalposition' is the byte position after the last character that was read. 
-  If there was an error this may be less than the end of the input.<br>
-  S - Success. File compiled successfully.<br>
-  L - Loading the saved state failed. No other error messages will be produced.<br>
+  &quot;'finalposition&quot; is the byte position after the last character that 
+  was read. If there was an error this may be less than the end of the input.</p>
+<p>The result codes are<br>
+  S - Success. The file compiled successfully and ran without an exception.<br>
+  X - Exception. The file compiled successfully but raised an exception when it 
+  ran.<br>
+  L - Loading the saved state failed.<br>
   F - Failure in type checking.<br>
   P - Parse failure.<br>
   If the result is L or P the parse tree will not have been updated. If the result 
   is S or F the parse tree will have been updated. In the case of a result of 
-  F the parse tree may not reflect the whole file if the file contains multiple 
-  topdecs.</p>
-<p>&quot;errors&quot; is a list a of zero or more error packets. An error packet 
-  consists of<br>
+  F or X the parse tree may not reflect the whole file if the file contains multiple 
+  &quot;program&quot; elements.</p>
+<p>For a result code of S there are no extra results.</p>
+<p> For a result code of L the result packet contains the reason for the failure 
+  as a string and has the form:<br>
+  ESC 'R' 'L' ESC ',' startOffset ESC ',' reason ESC-r</p>
+<p>For a result code of F or P the result packet contains a list of one or more 
+  error packets. An error packet consists of<br>
   ESC 'E' kind ESC ',' startPosition ESC ',' endPosition ESC ',' message ESC 'e'<br>
   &quot;kind&quot; is either 'E' indicating a hard error or 'W' indicating a non-fatal 
   warning. 'message' is a piece of text that may include output mark-up e.g. if 
-  it contains identifiers.<br>
-</p>
+  it contains identifiers. The format of the result packet is:<br>
+  ESC 'R' F' ESC ',' endOffset ESC ',' error-packet* ESC-r </p>
+<p>For a result code of X the result packet contains the exception message as 
+  a string, possibly containing output mark-up. In particular, the string will 
+  usually contain D-style mark-up around the whole string showing the location 
+  where the exception was raised. The format of the packet with exception data 
+  is: <br>
+  ESC 'R' 'X' ESC ',' startOffset ESC ',' exception-text ESC-r</p>
+<p>&nbsp;</p>
 </body>
 </html>
