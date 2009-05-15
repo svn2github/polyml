@@ -48,10 +48,10 @@
   mark-up to some of its messages. Currently that is just the location where an 
   identifier was declared.<br>
   The format of the starting packet is:<br>
-  ESC 'D' filename ESC ',' startline ESC ',' startlocation ESC ',' endlocation 
-  ESC ';'<br>
+  <font size="-1" face="Courier New, Courier, mono">ESC 'D' filename ESC ',' startline ESC 
+  ',' startlocation ESC ',' endlocation ESC ';'</font><br>
   This is followed by the identifier itself and then the closing packet:<br>
-  ESC 'd'<br>
+  <font size="-1" face="Courier New, Courier, mono">ESC 'd'</font><br>
   Mark up in the future will follow the same pattern allowing the IDE to skip 
   unrecognised mark-up. This mark-up is also used in some of the packets within 
   the full IDE protocol.</p>
@@ -75,8 +75,17 @@
   positions and returns information about that node. It always retains the actual 
   span for the node in the result so that the IDE can highlight the actual text 
   in the display.</p>
+<p>Every request contains a request identifier which is returned in the result. 
+  This allows the IDE to run asynchronously. A request identifier is an arbitrary 
+  string and the string may be empty if the IDE only issues commands synchronously. 
+  The request identifier used in a compilation request has a special status. This 
+  identifier is used to mark the version of the parse tree that results from the 
+  compilation and must be included in commands that query the parse tree. In that 
+  way Poly/ML is able to tell whether a request refers to the current tree or 
+  to an older or newer version.</p>
 <p>The format of a request packet is:<br>
-  ESC CODE startoffset ESC ',' endoffset ESC code<br>
+  <font size="-1" face="Courier New, Courier, mono">ESC CODE request-id ESC ',' 
+  parse-tree-id ESC ',' start-offset ESC ',' end-offset ESC code</font><br>
   The start character is an upper case character, the end character the corresponding 
   lower case character.<br>
   The CODE is, currently, one of the following</p>
@@ -117,21 +126,41 @@
   parse tree the start and end offsets will be zero. An unrecognised command will 
   return an empty response for forwards compatibility. Where a command is invalid 
   or unrecognised the response will be<br>
-  ESC CODE startoffset ESC ',' endoffset ESC code</p>
-<p>O Request : ESC 'O' startoffset ESC ',' endoffset ESC ',' commands ESC 'o'<br>
+  <font size="-1" face="Courier New, Courier, mono">ESC CODE request-id ESC ',' 
+  parse-tree-id ESC ',' startoffset ESC ',' endoffset ESC code</font></p>
+<p>In particular, because the IDE may issue requests while a compilation is running 
+  the parse tree id in the request packet may not match the current parse tree 
+  within Poly/ML. In that case the parse tree id in the result packet will contain 
+  the <em>current</em> parse tree and not the parse tree id in the request. The 
+  IDE must keep a list of requests it has sent along with the parse tree id it 
+  used and if it receives a response with a different parse tree id it should 
+  reissue the request adjusting the offsets to account for any changes.</p>
+<p>O Request <font size="-1" face="Courier New, Courier, mono"><br>
+  ESC 'O' request-id ESC ',' parse-tree-id ESC ',' start-offset ESC ',' end-offset 
+  ESC ',' commands ESC 'o'</font><br>
   The commands are a list of the valid commands (i.e. OTIUCNP). For forward compatibility 
   the IDE should accept but ignore other characters.<br>
-  T Request : ESC 'T' startoffset ESC ',' endoffset ESC ',' typestring ESC 't'<br>
+  T Request : <br>
+  <font size="-1" face="Courier New, Courier, mono">ESC 'T' request-id ESC ',' 
+  parse-tree-id ESC ',' start-offset ESC ',' end-offset ESC ',' type-string ESC 
+  't'</font><br>
   Returns the type of the selected node as a string. There is no currently mark 
-  up in the type. If this is not an expression this returns ESC 'T' startoffset 
-  ESC ',' endoffset ESC 't'</p>
-<p>I Request : ESC 'I' startoffset ESC ',' endoffset ESC ',' filename ESC ',' 
-  startline ESC ',' startlocation ESC ',' endlocation ESC 'i'<br>
-  The first two locations as usual indicate the position of the use of the identifier. 
-  The remaining information relates to the declaration. Returns ESC 'I' startoffset 
-  ESC ',' endoffset ESC 'i' if this is not an identifier. The information is similar 
-  to a D block in mark-up</p>
-<p>U, C, N, P requests : ESC CHAR startoffset ESC ',' endoffset ESC char </p>
+  up in the type. If this is not an expression this returns <font size="-1" face="Courier New, Courier, mono">ESC 
+  'T' request-id ESC ',' parse-tree-id ESC ',' start-offset ESC ',' end-offset 
+  ESC 't'</font></p>
+<p>I Request :<br>
+  <font size="-1" face="Courier New, Courier, mono">ESC 'I' request-id ESC ',' 
+  parse-tree-id ESC ',' start-offset ESC ',' end-offset ESC ',' filename ESC ',' 
+  startline ESC ',' startlocation ESC ',' endlocation ESC 'i'</font><br>
+  Finds an identifier at a given location and returns the location where that 
+  identifier was defined. The first two locations as usual indicate the position 
+  of the use of the identifier. The remaining information relates to the declaration. 
+  Returns <font size="-1" face="Courier New, Courier, mono">ESC 'I' request-id 
+  ESC ',' parse-tree-id ESC ',' startoffset ESC ',' endoffset ESC 'i'</font> if 
+  this is not an identifier. The information is similar to a D block in mark-up.</p>
+<p>U, C, N, P requests : <font size="-1" face="Courier New, Courier, mono">ESC 
+  CHAR request-id ESC ',' parse-tree-id ESC ',' startoffset ESC ',' endoffset 
+  ESC char </font></p>
 <h4><br>
   Compilation.</h4>
 <p>In order to compile a piece of text the IDE sends it to ML through the protocol. 
@@ -141,49 +170,76 @@
   all the files that this particular piece of source text will depend on and to 
   have saved it in a saved state. A compilation request therefore has the following 
   structure: <br>
-  ESC 'R' loadfile ESC ',' sourcename ESC ',' startposition ESC ',' source ESC 
-  'r'<br>
-  'loadfile' is the name of a saved state file. An empty string means that no 
-  file will be loaded.<br>
+  <font size="-1" face="Courier New, Courier, mono">ESC 'R' request-id ESC ',' 
+  prelude ESC ',' sourcename ESC ',' startposition ESC ',' source-text ESC 'r'</font><br>
+  'prelude' is a piece of ML code to compile and execute. Typically this will 
+  include a call to PolyML.SaveState.loadState to load the initial state for the 
+  compilation. <br>
   'sourcename' is the name to be used as the file name when reporting locations.<br>
   'startposition' is the value to be used as the initial offset in the file. The 
   usual case is that this is zero or null string which is taken as zero.</p>
 <p>Poly/ML responds with a result block. The format of the result block depends 
   on the result of the compilation and possible execution of the code. The basic 
   result block consists of<br>
-  ESC 'R' result ESC ',' finaloffset ESC-r if there are no other results or<br>
-  ESC 'R' result ESC ',' finaloffset ESC ',' extraresults ESC-r in other cases<br>
+  <font size="-1" face="Courier New, Courier, mono">ESC 'R' request-id ESC ',' 
+  result ESC ',' finaloffset ESC 'r'</font> if there are no other results or<br>
+  <font size="-1" face="Courier New, Courier, mono">ESC 'R' request-id ESC ',' 
+  result ESC ',' finaloffset ESC ',' extraresults ESC 'r'</font> in other cases<br>
   &quot;result&quot; is a single character indicating success or failure.<br>
-  &quot;'finalposition&quot; is the byte position after the last character that 
-  was read. If there was an error this may be less than the end of the input.</p>
+  &quot;'finalposition&quot; is the byte position that indicates the extent of 
+  the valid parse tree. If there was an error this may be less than the end of 
+  the input. It may be the start of the input if there was a syntax error and 
+  no parse tree could be created.</p>
 <p>The result codes are<br>
   S - Success. The file compiled successfully and ran without an exception.<br>
   X - Exception. The file compiled successfully but raised an exception when it 
   ran.<br>
-  L - Loading the saved state failed.<br>
-  F - Failure in type checking.<br>
-  P - Parse failure.<br>
-  If the result is L or P the parse tree will not have been updated. If the result 
-  is S or F the parse tree will have been updated. In the case of a result of 
-  F or X the parse tree may not reflect the whole file if the file contains multiple 
-  &quot;program&quot; elements.</p>
+  L - The prelude code failed to compile or raised an exception.<br>
+  F - Parse or type checking failure.<br>
+  C - Cancelled during compilation.<br>
+  The parse tree will be updated to reflect the result of the compilation and 
+  the current parse tree identifier used by Poly/ML will be set to the identifier 
+  supplied in the request. </p>
 <p>For a result code of S there are no extra results.</p>
-<p> For a result code of L the result packet contains the reason for the failure 
-  as a string and has the form:<br>
-  ESC 'R' 'L' ESC ',' startOffset ESC ',' reason ESC-r</p>
+<p> For a result code of L the result packet contains the exception packet that 
+  was returned and has the form:<br>
+  <font size="-1" face="Courier New, Courier, mono">ESC 'R' request-id ESC ',' 
+  'L' ESC ',' startOffset ESC ',' reason ESC 'r'</font></p>
 <p>For a result code of F or P the result packet contains a list of one or more 
   error packets. An error packet consists of<br>
-  ESC 'E' kind ESC ',' startPosition ESC ',' endPosition ESC ',' message ESC 'e'<br>
+  <font size="-1" face="Courier New, Courier, mono">ESC 'E' kind ESC ',' startPosition 
+  ESC ',' endPosition ESC ',' message ESC 'e'</font><br>
   &quot;kind&quot; is either 'E' indicating a hard error or 'W' indicating a non-fatal 
   warning. 'message' is a piece of text that may include output mark-up e.g. if 
   it contains identifiers. The format of the result packet is:<br>
-  ESC 'R' F' ESC ',' endOffset ESC ',' error-packet* ESC-r </p>
+  <font size="-1" face="Courier New, Courier, mono">ESC 'R' request-id ESC 
+  ',' 'F' ESC ',' endOffset ESC ',' error-packet* ESC 'r'</font></p>
+<p>For a result code of C the result may or may not contain error packets depending 
+  on whether the compilation had produced error messages before the compilation 
+  was cancelled.</p>
 <p>For a result code of X the result packet contains the exception message as 
   a string, possibly containing output mark-up. In particular, the string will 
   usually contain D-style mark-up around the whole string showing the location 
   where the exception was raised. The format of the packet with exception data 
   is: <br>
-  ESC 'R' 'X' ESC ',' startOffset ESC ',' exception-text ESC-r</p>
+  <font size="-1" face="Courier New, Courier, mono">ESC 'R' request-id ESC ',' 
+  'X' ESC ',' startOffset ESC ',' exception-text ESC 'r'</font></p>
+<h4>Cancellation.</h4>
+<p>Compilation is run as a separate thread and may be cancelled using the K-request.<br>
+  <font size="-1" face="Courier New, Courier, mono">ESC 'K' request-id ESC </font>'k'<br>
+  The request identifier is the identifier used in the R-request that should be 
+  cancelled. Unlike other requests this packet does not have its own identifier 
+  nor does it have a direct response.</p>
+<p>The action on receiving a cancel request depends on the current state of the 
+  compilation. If the compilation has already finished no action is taken. Poly/ML 
+  will have already sent a result packet for the compilation. If the compilation 
+  is in progress Poly/ML will attempt to cancel it by sending an interrupt to 
+  the compilation thread to ask it to terminate. If the thread is actually in 
+  the compiler at the time the interrupt is received the result will be a C result 
+  code but if it is actually executing the result of compilation this code will 
+  receive the Interrupt exception. Assuming it does not trap it the result will 
+  be an X result code. The thread may actually have completed before the interrupt 
+  is processed so any other result is also possible.</p>
 <p>&nbsp;</p>
 </body>
 </html>
