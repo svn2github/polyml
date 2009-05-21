@@ -102,32 +102,11 @@
     <td>Return declaration location</td>
   </tr>
   <tr> 
-    <td>U</td>
-    <td>Move to the parent node</td>
-  </tr>
-  <tr> 
-    <td>C</td>
-    <td>Move to the first child node</td>
-  </tr>
-  <tr> 
-    <td>N</td>
-    <td>Move to the next sibling</td>
-  </tr>
-  <tr> 
-    <td>P</td>
-    <td>Move to the previous sibling</td>
-  </tr>
-  <tr> 
-    <td>J</td>
-    <td>Return the location where an identifier was opened</td>
-  </tr>
-  <tr>
-    <td>S</td>
-    <td>Return the location of an identifier's parent structure</td>
+    <td>M</td>
+    <td>Move relative to a given position</td>
   </tr>
 </table>
-<h4>Responses from Poly/ML to the IDE</h4>
-<p> Responses follow a similar structure to the request. The start and end code 
+<p>Responses follow a similar structure to the request. The start and end code 
   for a response is the same as the start and end for the request. All responses 
   contain the actual start and end points of the current tree. If there is no 
   parse tree the start and end offsets will be zero. An unrecognised command will 
@@ -142,12 +121,15 @@
   IDE must keep a list of requests it has sent along with the parse tree id it 
   used and if it receives a response with a different parse tree id it should 
   reissue the request adjusting the offsets to account for any changes.</p>
-<p>O Request <font size="-1" face="Courier New, Courier, mono"><br>
-  ESC 'O' request-id ESC ',' parse-tree-id ESC ',' start-offset ESC ',' end-offset 
-  ESC ',' commands ESC 'o'</font><br>
-  The commands are a list of the valid commands (i.e. OTIUCNP). For forward compatibility 
-  the IDE should accept but ignore other characters.<br>
-  T Request : <br>
+<p>O Request:<font size="-1" face="Courier New, Courier, mono"> ESC 'O' request-id 
+  ESC ',' parse-tree-id ESC ',' start-offset ESC ',' end-offset ESC 'o'<br>
+  </font>Response:<font size="-1" face="Courier New, Courier, mono"> ESC 'O' request-id 
+  ESC ',' parse-tree-id ESC ',' start-offset ESC ',' end-offset commands ESC 'o'</font><br>
+  The commands are a set of strings separated by ESC ','. At the moment the strings 
+  are all single characters and identify the set of valid commands and sub-commands: 
+  i.e. T,I,J,S,U,C,N and P. For forward compatibility the IDE should accept but 
+  ignore other strings.</p>
+<p> T Request : <br>
   <font size="-1" face="Courier New, Courier, mono">ESC 'T' request-id ESC ',' 
   parse-tree-id ESC ',' start-offset ESC ',' end-offset ESC ',' type-string ESC 
   't'</font><br>
@@ -155,24 +137,64 @@
   up in the type. If this is not an expression this returns <font size="-1" face="Courier New, Courier, mono">ESC 
   'T' request-id ESC ',' parse-tree-id ESC ',' start-offset ESC ',' end-offset 
   ESC 't'</font></p>
-<p>I, J and S Requests :<br>
-  <font size="-1" face="Courier New, Courier, mono">ESC 'I' request-id ESC ',' 
-  parse-tree-id ESC ',' start-offset ESC ',' end-offset ESC ',' filename ESC ',' 
-  startline ESC ',' startlocation ESC ',' endlocation ESC 'i'</font><br>
+<p>I Request :<font size="-1" face="Courier New, Courier, mono"> ESC CHAR 'I' 
+  ESC ',' parse-tree-id ESC ',' startoffset ESC ',' endoffset ESC ',' request-type 
+  ESC 'i'</font><br>
+  <font size="-1" face="Courier New, Courier, mono">Response: <font size="-1" face="Courier New, Courier, mono"></font>ESC 
+  'I' request-id ESC ',' parse-tree-id ESC ',' start-offset ESC ',' end-offset 
+  ESC ',' filename ESC ',' startline ESC ',' startlocation ESC ',' endlocation 
+  ESC 'i'</font><br>
   Thse requests return information about an identifier. Finds an identifier at 
   a given location and returns the location where that identifier was defined, 
-  in the case of an I request; where the identifier was added to the current name 
-  space using an &quot;open&quot; declaration, in the case of a J request and 
-  the location where the structure that was opened was declared, in the case of 
-  an S request. The first two locations as usual indicate the position of the 
-  use of the identifier. The remaining information relates to the declaration. 
-  Returns <font size="-1" face="Courier New, Courier, mono">ESC 'I' request-id 
-  ESC ',' parse-tree-id ESC ',' startoffset ESC ',' endoffset ESC 'i'</font> if 
-  this is not an identifier or did not come from opening a structure, where appropriate. 
-  The information is similar to a D block in mark-up.</p>
-<p>U, C, N, P requests : <font size="-1" face="Courier New, Courier, mono">ESC 
-  CHAR request-id ESC ',' parse-tree-id ESC ',' startoffset ESC ',' endoffset 
-  ESC char </font></p>
+  if the request-type is 'I'; where the identifier was added to the current name 
+  space using an &quot;open&quot; declaration, if it is J and the location where 
+  the structure that was opened was declared, if it is S. The first two locations 
+  as usual indicate the position of the use of the identifier. The remaining information 
+  relates to the declaration. Returns <font size="-1" face="Courier New, Courier, mono">ESC 
+  'I' request-id ESC ',' parse-tree-id ESC ',' startoffset ESC ',' endoffset ESC 
+  'i'</font> if this is not an identifier or did not come from opening a structure, 
+  where appropriate. The information is similar to a D block in mark-up.</p>
+<table width="43%" border="0">
+  <tr> 
+    <td>I</td>
+    <td>Return declaration location</td>
+  </tr>
+  <tr> 
+    <td>J</td>
+    <td>Return the location where an identifier was opened</td>
+  </tr>
+  <tr> 
+    <td>S</td>
+    <td>Return the location of an identifier's parent structure</td>
+  </tr>
+</table>
+<p>M request : <font size="-1" face="Courier New, Courier, mono">ESC CHAR 'M' 
+  ESC ',' parse-tree-id ESC ',' startoffset ESC ',' endoffset ESC ',' action ESC 
+  'M'<br>
+  </font>Response: <font size="-1" face="Courier New, Courier, mono">ESC CHAR 
+  'M' parse-tree-id ESC ',' startoffset ESC ',' endoffset ESC 'M'<br>
+  </font>Selects the parse tree node at the given location and moves relative 
+  to it. If the move is not possible the location remains unchanged. The action 
+  string defines the direction of the move. Currently all moves are single character 
+  strings. </p>
+<table width="43%" border="0">
+  <tr> 
+    <td>&quot;U&quot;</td>
+    <td>Move to the parent node</td>
+  </tr>
+  <tr> 
+    <td>&quot;C&quot;</td>
+    <td>Move to the first child node</td>
+  </tr>
+  <tr> 
+    <td>&quot;N&quot;</td>
+    <td>Move to the next sibling</td>
+  </tr>
+  <tr> 
+    <td>&quot;P&quot;</td>
+    <td>Move to the previous sibling</td>
+  </tr>
+</table>
 <h4><br>
   Compilation.</h4>
 <p>In order to compile a piece of text the IDE sends it to ML through the protocol. 
