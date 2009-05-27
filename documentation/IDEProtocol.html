@@ -56,7 +56,9 @@
   identifier was declared.<br>
   The format of the starting packet is:
   
-  <div class="packet">ESC 'D' filename ESC ',' startline ESC ',' startlocation ESC ',' endlocation ESC ';'</div>
+  
+<div class="packet">ESC 'D' filename ESC ',' startline ESC ',' startlocation ESC 
+  ',' endlocation ESC ','</div>
   
   This is followed by the identifier itself and then the closing packet:
   <div class="packet">ESC 'd'</div>
@@ -276,9 +278,9 @@ Selects the parse tree node at the given location and moves relative
   <div class="packet">ESC 'R' request-id ESC ',' parse-tree-id ESC ',' 'L' ESC ',' startOffset 
     ESC ',' reason ESC 'r'</div></p>
 <p>For a result code of F the result packet contains a list of one or more error 
-  packets. An error packet consists of<br>
-<div class="packet">ESC 'E' kind ESC ',' startPosition ESC ',' endPosition 
-  ESC ',' message ESC 'e'</div>
+  packets. An error packet consists of
+<div class="packet">ESC 'E' kind ESC ',' filename ESC ',' startline ESC ',' startlocation 
+  ESC ',' endlocation ESC ',' message ESC 'e'</div>
   &quot;kind&quot; is either 'E' indicating a hard error or 'W' indicating a non-fatal 
   warning. 'message' is a piece of text that may include output mark-up e.g. if 
   it contains identifiers. The format of the result packet is:
