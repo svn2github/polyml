@@ -50,23 +50,28 @@
 
 <p>Poly/ML can be run in a mode where it produces enhanced output but otherwise 
   runs a normal top-level. This can be used by the IDE to give the user access 
-  to a normal interactive ML session. The <CODE>--with-markup</CODE>
-  option to Poly/ML runs the normal Poly/ML top-level loop but causes it to add 
-  mark-up to some of its messages. Currently that is just the location where an 
-  identifier was declared.<br>
-  The format of the starting packet is:
-  
-  
+  to a normal interactive ML session. The <CODE>--with-markup</CODE> option to 
+  Poly/ML runs the normal Poly/ML top-level loop but causes it to add mark-up 
+  to some of its messages. Currently it is used in two cases; in error messages 
+  and in messages showing where an identifier was declared.<br>
+  The format of the information showing a location is: 
 <div class="packet">ESC 'D' filename ESC ',' startline ESC ',' startlocation ESC 
-  ',' endlocation ESC ','</div>
+  ',' endlocation ESC ';'</div>
   
   This is followed by the identifier itself and then the closing packet:
   <div class="packet">ESC 'd'</div>
   
-  Mark up in the future will follow the same pattern allowing the IDE to skip 
+  
+<p>An error message packet consists of </p>
+<div class="packet">ESC 'E' kind ESC ',' filename ESC ',' startline ESC ',' startlocation 
+  ESC ',' endlocation ESC ';'</div>
+<p>&quot;kind&quot; is either 'E' indicating a hard error or 'W' indicating a 
+  non-fatal warning. This is followed by the text of the message and then the 
+  closing packet:</p>
+<div class="packet">ESC 'e'</div>
+<p>Mark up in the future will follow the same pattern allowing the IDE to skip 
   unrecognised mark-up. This mark-up is also used in some of the packets within 
   the full IDE protocol.</p>
-  
 <h2>Full IDE protocol</h2>
 
 <p> When run with the <CODE>--ideprotocol</CODE> 
@@ -225,8 +230,8 @@ Selects the parse tree node at the given location and moves relative
   by previously saving some state. Typically, this would require it to have compiled 
   all the files that this particular piece of source text will depend on and to 
   have saved it in a saved state. A compilation request therefore has the following 
-  structure: <br>
-<div class="packet">ESC 'R' request-id ESC ',' sourcename ESC ',' startposition ESC ',' prelude-length 
+  structure:
+  <div class="packet">ESC 'R' request-id ESC ',' sourcename ESC ',' startposition ESC ',' prelude-length 
   ESC ',' source-length ESC ',' prelude ESC ',' source-text ESC 'r'</div>
   'prelude' is a piece of ML code to compile and execute before the user-supplied 
   code. Typically this will include a call to PolyML.SaveState.loadState to load 
@@ -244,14 +249,16 @@ Selects the parse tree node at the given location and moves relative
   within the text it is not itself escaped.</p>
 <p>Poly/ML responds with a result block. The format of the result block depends 
   on the result of the compilation and possible execution of the code. The basic 
-  result block consists of<br>
+  result block consists of
 <div class="packet">ESC 'R' request-id ESC ',' parse-tree-id 
   ESC ',' result ESC ',' finaloffset ESC 'r'</div> 
   if there are 
-  no other results or<br>
+  no other results or
   <div class="packet">ESC 'R' request-id ESC ',' parse-tree-id ESC ',' result ESC ',' finaloffset 
     ESC ',' extraresults ESC 'r'</div>
-  in other cases<br>
+  
+in other cases.</p>
+<p>
   &quot;result&quot; is a single character indicating success or failure.<br>
   &quot;'finalposition&quot; is the byte position that indicates the extent of 
   the valid parse tree. If there was an error this may be less than the end of 
@@ -261,7 +268,7 @@ Selects the parse tree node at the given location and moves relative
   &quot;request-id&quot; indicating that the compilation has updated the parse 
   tree, even if type checking failed. However, if there was a failure, such as 
   during parsing, that meant that no new parse tree could be produced the ID returned 
-  will be the original parse tree ID, or the empty string if there was none.</p>
+  will be the original parse tree ID, or the empty string if there was none.</p> 
 <p>The result codes are<br>
   S - Success. The file compiled successfully and ran without an exception.<br>
   X - Exception. The file compiled successfully but raised an exception when it 
@@ -278,15 +285,10 @@ Selects the parse tree node at the given location and moves relative
   <div class="packet">ESC 'R' request-id ESC ',' parse-tree-id ESC ',' 'L' ESC ',' startOffset 
     ESC ',' reason ESC 'r'</div></p>
 <p>For a result code of F the result packet contains a list of one or more error 
-  packets. An error packet consists of
-<div class="packet">ESC 'E' kind ESC ',' filename ESC ',' startline ESC ',' startlocation 
-  ESC ',' endlocation ESC ',' message ESC 'e'</div>
-  &quot;kind&quot; is either 'E' indicating a hard error or 'W' indicating a non-fatal 
-  warning. 'message' is a piece of text that may include output mark-up e.g. if 
-  it contains identifiers. The format of the result packet is:
-  
+  packets.The format of the result packet is: 
 <div class="packet">ESC 'R' request-id ESC ',' parse-tree-id ESC ',' 'F' ESC ',' endOffset 
   ESC ',' error-packet* ESC 'r'</div>
+<p>The error packets have the format as for mark-up.</p>
 <p>For a result code of C the result may or may not contain error packets depending 
   on whether the compilation had produced error messages before the compilation 
   was cancelled.</p>
