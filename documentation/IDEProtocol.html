@@ -94,13 +94,16 @@
 
 <h2>Full IDE protocol</h2>
 
-
 <p> When run with the <code>--ideprotocol</code> 
-  option the top-level loop runs the full IDE communication protocol. This is 
+  option the top-level loop runs the full IDE communication protocol. This can also be started by <code>PolyML.IDEInterface.runIDEProtocol()</code> from within PolyML. 
+  </p>
+  <p>This is 
   intended primarily for compiling files while they are being edited, either as 
   the result of an explicit request from the user or automatically. When this 
   option is given the front-end retains the parse tree and requests can be made 
-  to extract information from the parse tree. Requests are in terms of byte offsets 
+  to extract information from the parse tree. 
+  </p>
+  <p>Requests are in terms of byte offsets 
   within the last source text. If the text has been edited since it was last sent 
   to ML the IDE must convert positions within the current source text into positions 
   within the original before sending requests to ML and do the reverse conversion 
@@ -113,7 +116,7 @@
 <p>Simple requests about the current parse tree all have the same format. They 
   contain a request code that describes the kind of information to return and 
   a pair of positions. Frequently the start and end positions will be the same. 
-  The front-end searches for the smallest node in the parse tree that spans the 
+  PolyML searches for the smallest node in the parse tree that spans the 
   positions and returns information about that node. It always retains the actual 
   span for the node in the result so that the IDE can highlight the actual text 
   in the display.</p>
@@ -277,56 +280,41 @@ The CODE is, currently, one of the following
 
 <p><span class="packet-name">M request:</span>
 </p>
-<div class="packet">ESC CHAR 'M' ESC ',' parse-tree-id ESC ',' startoffset ESC ',' endoffset ESC ',' action ESC 'M'</div>
+<div class="packet">ESC CHAR 'M' ESC ',' parse-tree-id ESC ',' startoffset ESC ',' endoffset ESC ',' action ESC 'm'</div>
 
-<span class="packet-name">M Response:</span>
-<div class="packet">ESC CHAR 'M' parse-tree-id ESC ',' startoffset ESC ',' endoffset ESC 'M'</div>
-
-Selects the parse tree node at the given location and moves relative 
-  to it. If the move is not possible the location remains unchanged. The action 
+The action 
   string defines the direction of the move. Currently all moves are single character 
   strings. 
 <table border="0" width="43%">
 
   <tbody>
     <tr>
- 
     <td>"U"</td>
-
     <td>Move to the parent node</td>
-
   </tr>
-
   <tr>
- 
     <td>"C"</td>
-
     <td>Move to the first child node</td>
-
   </tr>
-
   <tr>
- 
     <td>"N"</td>
-
     <td>Move to the next sibling</td>
-
   </tr>
-
   <tr>
- 
     <td>"P"</td>
-
     <td>Move to the previous sibling</td>
-
   </tr>
-
   </tbody>
 </table>
 
 
-<h3>Compilation.</h3>
+<span class="packet-name">M Response:</span>
+<div class="packet">ESC CHAR 'M' parse-tree-id ESC ',' startoffset ESC ',' endoffset ESC 'm'</div>
 
+PolyML selects the parse tree node at the given location and moves relative 
+  to it. If the move is not possible the location remains unchanged. If the move is successful then the new move location is returned in the packet. 
+
+<h3>Compilation.</h3>
 
 <p>In order to compile a piece of text the IDE sends it to ML through the protocol. 
   Because any previous compilation may have executed code and affected the global 
@@ -336,6 +324,7 @@ Selects the parse tree node at the given location and moves relative
   have saved it in a saved state. A compilation request therefore has the following 
   structure:
   </p>
+  
 <div class="packet">ESC 'R' request-id ESC ',' sourcename ESC ',' startposition ESC ',' prelude-length 
   ESC ',' source-length ESC ',' prelude ESC ',' source-text ESC 'r'</div>
 
@@ -358,35 +347,26 @@ Selects the parse tree node at the given location and moves relative
   search for the escape code within the text and so if the escape character appears 
   within the text it is not itself escaped.
 <p>Poly/ML responds with a result block. The format of the result block depends 
-  on the result of the compilation and possible execution of the code. The basic 
-  result block consists of
+  on the result of the compilation and possible execution of the code. The  result block has the form:
 </p>
 <div class="packet">ESC 'R' request-id ESC ',' parse-tree-id 
-  ESC ',' result ESC ',' finaloffset ESC 'r'</div>
- 
-  if there are 
-  no other results or
-  
-<div class="packet">ESC 'R' request-id ESC ',' parse-tree-id ESC ',' result ESC ',' finaloffset 
-  ESC ';' extraresults ESC 'r'</div>
+  ESC ',' result ESC ',' finaloffset ESC ';' errors_and_messages ESC 'r'</div>
 
-  
-in other cases.
-<p>
-  "result" is a single character indicating success or failure.<br>
+  "<code>result</code>" is a single character indicating success or failure.<br>
 
-  "'finalposition" is the byte position that indicates the extent of 
+  "<code>finaloffset</code>" is the byte position that indicates the extent of 
   the valid parse tree. If there was an error this may be less than the end of 
   the input. It may be the start of the input if there was a syntax error and 
-  no parse tree could be created. As usual "request-id" is the ID of 
-  the request. The "parse-tree-id" will normally be the same as the 
-  "request-id" indicating that the compilation has updated the parse 
+  no parse tree could be created. As usual "<code>request-id</code>" is the ID of 
+  the request. The "<code>parse-tree-id</code>" will normally be the same as the 
+  "<code>request-id</code>" indicating that the compilation has updated the parse 
   tree, even if type checking failed. However, if there was a failure, such as 
   during parsing, that meant that no new parse tree could be produced the ID returned 
-  will be the original parse tree ID, or the empty string if there was none.</p>
+  will be the original parse tree ID, or the empty string if there was none. <br>
+  Error packets within the <code>errors_and_messages</code> have the same format as described above for mark-up.
+  </p>
  
 <p>The result codes are<br>
-
   S - Success. The file compiled successfully and ran without an exception.<br>
 
   X - Exception. The file compiled successfully but raised an exception when it 
@@ -402,40 +382,37 @@ in other cases.
   the current parse tree identifier used by Poly/ML will be set to the identifier 
   supplied in the request. </p>
 
-<p>For a result code of S there are no extra results.</p>
+<p>For a result code of S (compiled successfully) there may be warnings.</p>
 
-<p> For a result code of L the result packet contains the exception packet that 
+<p> For a result code of L (prelude code failed) the result packet contains the exception packet that 
   was returned and has the form:<br>
 
   </p>
 <div class="packet">ESC 'R' request-id ESC ',' parse-tree-id ESC ',' 'L' ESC ',' startOffset 
-  ESC ';' reason ESC 'r'</div>
+  ESC ';' error_message ESC 'r'</div>
 
-<p>For a result code of F the result packet contains a list of one or more error 
-  packets.The format of the result packet is: 
+<p>For a result code of F (parsing or type checking failed) the result packet contains a list of one or more error 
+  packets. The format of the result packet is: 
 </p>
 <div class="packet">ESC 'R' request-id ESC ',' parse-tree-id ESC ',' 'F' ESC ',' endOffset 
-  ESC ';' error-packet* ESC 'r'</div>
+  ESC ';' error_packets ESC 'r'</div>
 
-<p>The error packets have the format as for mark-up.</p>
+<p>Where the error packets have the same format as described above for mark-up.</p>
 
-<p>For a result code of C the result may or may not contain error packets depending 
+<p>For a result code of C (cancel compiled) the result may or may not contain error packets depending 
   on whether the compilation had produced error messages before the compilation 
   was cancelled.</p>
 
-<p>For a result code of X the result packet contains the exception message as 
-  a string, possibly containing output mark-up. In particular, the string will 
-  usually contain D-style mark-up around the whole string showing the location 
-  where the exception was raised. The format of the packet with exception data 
+<p>For a result code of X the <code>errors_and_messages</code> result packet contains the exception message first within a <code>X</code> tag, as 
+  a string. The string may also containing output mark-up such as the D-style mark-up showing the location 
+  where the exception was raised. Thus the format of the packet with exception data 
   is: <br>
 
 </p>
 <div class="packet">ESC 'R' request-id ESC ',' parse-tree-id ESC ',' 'X' ESC ',' startOffset 
-  ESC ';' exception-text ESC 'r'</div>
+  ESC ';' ESC 'X' exception_message ESC 'x' error_packets ESC 'r'</div>
 
-  
 <h3>Cancellation.</h3>
-
 
 <p>Compilation is run as a separate thread and may be cancelled using the K-request.<br>
 
