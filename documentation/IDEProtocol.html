@@ -103,7 +103,13 @@
   option is given the front-end retains the parse tree and requests can be made 
   to extract information from the parse tree. 
   </p>
-  <p>Requests are in terms of byte offsets 
+
+  <p>When the IDE mode is started, PolyML sends the following message to std-out: 
+<div class="packet">ESC 'H' protocol-version-number ESC 'h'</div>
+  where <code>protocol-version-number</code> is the version number identifying the particular version of the PolyML protocol. Requests to PolyML should wait until this message has been sent by PolyML. The current version of the protocol is <code>1.0.0</code>.
+  </p>
+
+  <p>Requests to PolyML are in terms of byte offsets 
   within the last source text. If the text has been edited since it was last sent 
   to ML the IDE must convert positions within the current source text into positions 
   within the original before sending requests to ML and do the reverse conversion 
@@ -111,7 +117,6 @@
 
   
 <h3>Requests from IDE to Poly/ML.</h3>
-
 
 <p>Simple requests about the current parse tree all have the same format. They 
   contain a request code that describes the kind of information to return and 
