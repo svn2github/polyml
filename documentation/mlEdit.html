@@ -5,14 +5,23 @@
 <title>Source for mlEdit example </title>
 </head>
 
-<body>
-
-<pre>(*
-    Copyright (c) 2001
+<body><pre>(*
+    Copyright (c) 2001-7
         David C.J. Matthews
 
-    Copying and use of this software is subject to the terms of the
-    Poly/ML licence.
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+    
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+    
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 *)
 (* Example text editor. *)
 fun mlEdit () =
@@ -38,8 +47,9 @@ let
     val app = Globals.ApplicationInstance()
 
     (* Borrow the Poly icon from the application program. It happens to
-       be icon id 102. *)
-    val polyIcon = Icon.LoadIcon(app, Resource.MAKEINTRESOURCE 102);
+       be icon id 102. If this doesn't work return NULL. *)
+    val polyIcon =
+        Icon.LoadIcon(app, Resource.MAKEINTRESOURCE 102) handle _ => Globals.hNull;
 
     local
         (* Create sub-menus. *)
@@ -47,14 +57,14 @@ let
             let
                 val fileMenu = CreateMenu();
             in
-                AppendMenu(fileMenu, [], MenuId menuOpen, MFT_STRING &quot;&amp;Open&quot;);
-                AppendMenu(fileMenu, [], MenuId menuSave, MFT_STRING &quot;&amp;Save&quot;);
-                AppendMenu(fileMenu, [], MenuId menuSaveAs, MFT_STRING &quot;Save &amp;As...&quot;);
+                AppendMenu(fileMenu, [], MenuId menuOpen, MFT_STRING "&Open");
+                AppendMenu(fileMenu, [], MenuId menuSave, MFT_STRING "&Save");
+                AppendMenu(fileMenu, [], MenuId menuSaveAs, MFT_STRING "Save &As...");
                 AppendMenu(fileMenu, [], MenuId 0, MFT_SEPARATOR);
-                AppendMenu(fileMenu, [], MenuId menuPageSetup, MFT_STRING &quot;Page Set&amp;up...&quot;);
-                AppendMenu(fileMenu, [], MenuId menuPrint, MFT_STRING &quot;P&amp;rint...&quot;);
+                AppendMenu(fileMenu, [], MenuId menuPageSetup, MFT_STRING "Page Set&up...");
+                AppendMenu(fileMenu, [], MenuId menuPrint, MFT_STRING "P&rint...");
                 AppendMenu(fileMenu, [], MenuId 0, MFT_SEPARATOR);
-                AppendMenu(fileMenu, [], MenuId menuQuit, MFT_STRING &quot;&amp;Quit&quot;);
+                AppendMenu(fileMenu, [], MenuId menuQuit, MFT_STRING "&Quit");
                 fileMenu
             end;
     
@@ -62,10 +72,10 @@ let
             let
                 val editMenu = CreateMenu();
             in
-                AppendMenu(editMenu, [], MenuId menuCut, MFT_STRING &quot;Cu&amp;t&quot;);
-                AppendMenu(editMenu, [], MenuId menuCopy, MFT_STRING &quot;&amp;Copy&quot;);
-                AppendMenu(editMenu, [], MenuId menuPaste, MFT_STRING &quot;&amp;Paste&quot;);
-                AppendMenu(editMenu, [], MenuId menuFind, MFT_STRING &quot;&amp;Find&quot;);
+                AppendMenu(editMenu, [], MenuId menuCut, MFT_STRING "Cu&t");
+                AppendMenu(editMenu, [], MenuId menuCopy, MFT_STRING "&Copy");
+                AppendMenu(editMenu, [], MenuId menuPaste, MFT_STRING "&Paste");
+                AppendMenu(editMenu, [], MenuId menuFind, MFT_STRING "&Find");
                 editMenu
             end;
 
@@ -73,32 +83,32 @@ let
             let
                 val helpMenu = CreateMenu()
             in
-                AppendMenu(helpMenu, [], MenuId menuAbout, MFT_STRING &quot;&amp;About mlEdit...&quot;);
+                AppendMenu(helpMenu, [], MenuId menuAbout, MFT_STRING "&About mlEdit...");
                 helpMenu
             end
 
     in
         (* Create the main menu and append the sub-menus. *)
         val menu = CreateMenu();
-        val _ = AppendMenu(menu, [], MenuHandle fileMenu, MFT_STRING &quot;&amp;File&quot;);
-        val _ = AppendMenu(menu, [], MenuHandle editMenu, MFT_STRING &quot;&amp;Edit&quot;)
-        val _ = AppendMenu(menu, [], MenuHandle helpMenu, MFT_STRING &quot;&amp;Help&quot;)
+        val _ = AppendMenu(menu, [], MenuHandle fileMenu, MFT_STRING "&File");
+        val _ = AppendMenu(menu, [], MenuHandle editMenu, MFT_STRING "&Edit")
+        val _ = AppendMenu(menu, [], MenuHandle helpMenu, MFT_STRING "&Help")
     end;
 
-    (* The &quot;state&quot; of the editor. *)
+    (* The "state" of the editor. *)
     type state = {
         edit: HWND, (* Handle to the edit window. *)
         devMode: DEVMODE option, devNames: DEVNAMES option, (* Printer settings *)
         fileName: string
         }
 
-    fun wndProc(hw: HWND, msg: Message, NONE) =
+    fun wndProc(hw: HWND, msg: Message, NONE): LRESULT * state option =
         (
         case msg of
-            WM_CREATE _ =&gt; (* Create an edit window and return it as the state. *)
+            WM_CREATE _ => (* Create an edit window and return it as the state. *)
             let
                 val edit =
-                 CreateWindow{class = Class.Edit, name = &quot;&quot;,
+                 CreateWindow{class = Class.Edit, name = "",
                     (* The style does not include horizontal scrolling.  That causes us to use word-wrapping. *)
                     style = Edit.Style.flags[Edit.Style.WS_CHILD, Edit.Style.WS_VISIBLE, Edit.Style.WS_VSCROLL,
                                     (*Edit.Style.WS_HSCROLL, *)Edit.Style.ES_LEFT, Edit.Style.ES_MULTILINE,
@@ -114,45 +124,45 @@ let
                        weight=FW_DONTCARE, italic=false, underline=false, strikeOut=false,
                        charSet=ANSI_CHARSET, outputPrecision=OUT_DEFAULT_PRECIS,
                        clipPrecision=CLIP_DEFAULT_PRECIS, quality=DEFAULT_QUALITY,
-                       pitch=FIXED_PITCH, family=FF_MODERN, faceName=&quot;Courier&quot;}
+                       pitch=FIXED_PITCH, family=FF_MODERN, faceName="Courier"}
             in
                 SendMessage(edit, WM_SETFONT{font=hFont, redrawflag=false});
-                (SOME(LRESINT 0), SOME{edit=edit, devMode=NONE, devNames = NONE, fileName=&quot;&quot;})
+                (LRESINT 0, SOME{edit=edit, devMode=NONE, devNames = NONE, fileName=""})
             end
 
-        | _ =&gt; (NONE, NONE)
+        | _ => (DefWindowProc(hw, msg), NONE)
         )
 
     | wndProc(hw: HWND,
               msg: Message,
               state: state option as SOME{edit, devMode, devNames, fileName, ...}) =
         case msg of
-            WM_SETFOCUS _ =&gt;
+            WM_SETFOCUS _ =>
                 (* If we get a focus request we set the focus to the edit window. *)
-                (SetFocus(SOME edit); (NONE, state))
+                (SetFocus(SOME edit); (DefWindowProc(hw, msg), state))
     
-        |    WM_SIZE{height, width, ...} =&gt;
+        |    WM_SIZE{height, width, ...} =>
                 (* If we get a size change we set the size of the edit window. *)
-                (MoveWindow{hWnd=edit, x=0, y=0, height=height, width=width, repaint=true}; (NONE, state))
+                (MoveWindow{hWnd=edit, x=0, y=0, height=height, width=width, repaint=true}; (DefWindowProc(hw, msg), state))
     
-        |    WM_NCDESTROY =&gt;
+        |    WM_NCDESTROY =>
                 (* When the window is closed we send a QUIT message which exits from the application loop. *)
-                (PostQuitMessage 0; (NONE, state))
+                (PostQuitMessage 0; (DefWindowProc(hw, msg), state))
     
-        |    WM_CLOSE =&gt;
+        |    WM_CLOSE =>
                 (* User has pressed the Close box.  If it's ok to close we could call
                    DestroyWindow ourselves.  Just as an example we return NONE which
                    passes it to the default window procedure and does it for us. *)
-                (if checkForSave(hw, edit, fileName) then NONE else SOME(LRESINT 0), state)
+                (if checkForSave(hw, edit, fileName) then DefWindowProc(hw, msg) else LRESINT 0, state)
     
-        |    WM_COMMAND{notifyCode = 0, wId, control} =&gt;
+        |    WM_COMMAND{notifyCode = 0, wId, control} =>
                 (* Menu selections arrive here. *)
 
                 if wId = menuQuit
                 then
                     (
                     if checkForSave(hw, edit, fileName) then DestroyWindow hw else ();
-                    (SOME(LRESINT 0), state)
+                    (LRESINT 0, state)
                     )
 
                 else if wId = menuOpen
@@ -162,14 +172,14 @@ let
                         owner = SOME hw,
                         template = TemplateDefault,
                         filter =
-                            [(&quot;Text Files (*.txt)&quot;, &quot;*.txt&quot;),
-                             (&quot;ML Files (*.sml)&quot;, &quot;*.sml&quot;),
-                             (&quot;All Files (*.*)&quot;, &quot;*.*&quot;)],
+                            [("Text Files (*.txt)", "*.txt"),
+                             ("ML Files (*.sml)", "*.sml"),
+                             ("All Files (*.*)", "*.*")],
                         customFilter = NONE,
                         filterIndex = 1,
-                        file = &quot;&quot;,
+                        file = "",
                         maxFile = 1000,
-                        fileTitle = &quot;&quot;,
+                        fileTitle = "",
                         initialDir = NONE,
                         title = NONE,
                         flags = OpenFileFlags.flags[OpenFileFlags.OFN_HIDEREADONLY],
@@ -177,8 +187,8 @@ let
                     }
                 in
                     case GetOpenFileName on of
-                        NONE =&gt; (SOME(LRESINT 0), state)
-                    |    SOME {file, ...} =&gt;
+                        NONE => (LRESINT 0, state)
+                    |    SOME {file, ...} =>
                         (* If it's been modified we need to ask before overwriting. *)
                         if checkForSave(hw, edit, fileName)
                         then
@@ -187,36 +197,36 @@ let
                             (* Text input will convert CRNL to \n.  We need to
                                reverse the process. *)
                             fun nlToCrnl s =
-                                String.translate(fn #&quot;\n&quot; =&gt; &quot;\r\n&quot; | c =&gt; String.str c) s
+                                String.translate(fn #"\n" => "\r\n" | c => String.str c) s
                         in
                             (* Should we save any existing file? *)
                             SetWindowText(edit, nlToCrnl(TextIO.inputAll f));
                             TextIO.closeIn f;
                             SendMessage(edit, EM_SETMODIFY{modified=false});
-                            (SOME(LRESINT 0), SOME{edit=edit, devMode=devMode, devNames=devNames,
+                            (LRESINT 0, SOME{edit=edit, devMode=devMode, devNames=devNames,
                                           fileName=file})
-                        end) handle exn =&gt;
+                        end) handle exn =>
                             (MessageBox(SOME hw,
-                                concat[&quot;Unable to open - &quot;, file, &quot;\n&quot;, exnMessage exn],
-                                &quot;Open failure&quot;, MessageBoxStyle.MB_OK);
-                            (SOME(LRESINT 0), state))
-                        else (SOME(LRESINT 0), state)
+                                concat["Unable to open - ", file, "\n"(*, exnMessage exn*)],
+                                "Open failure", MessageBoxStyle.MB_OK);
+                            (LRESINT 0, state))
+                        else (LRESINT 0, state)
                 end
 
-                else if wId = menuSave andalso fileName &lt;&gt; &quot;&quot;
+                else if wId = menuSave andalso fileName <> ""
                 then (* Save to the original file name if there is one. *)
                 (
                     saveDocument(hw, fileName, edit);
-                    (SOME(LRESINT 0), state)
+                    (LRESINT 0, state)
                 )
 
-                else if wId = menuSaveAs orelse wId = menuSave (* andalso fileName = &quot;&quot; *)
+                else if wId = menuSaveAs orelse wId = menuSave (* andalso fileName = "" *)
                 then
                 (
                     case saveAsDocument(hw, edit) of
-                        NONE =&gt; (SOME(LRESINT 0), state)
-                    |    SOME newName =&gt;
-                            (SOME(LRESINT 0), (* Use the selected file name. *)
+                        NONE => (LRESINT 0, state)
+                    |    SOME newName =>
+                            (LRESINT 0, (* Use the selected file name. *)
                                 SOME{edit=edit, devMode=devMode, devNames=devNames,
                                      fileName=newName})
                 )
@@ -225,23 +235,23 @@ let
                 then
                 let
                     open FindReplaceFlags
-                    (* Create a &quot;Find&quot; dialogue. *)
+                    (* Create a "Find" dialogue. *)
                     val find =
                         FindText{owner = hw, template = TemplateDefault,
                                  flags=flags[FR_DOWN, FR_HIDEWHOLEWORD],
-                                 findWhat=&quot;&quot;, replaceWith=&quot;&quot;, bufferSize = 100}
+                                 findWhat="", replaceWith="", bufferSize = 100}
                 in
                     ShowWindow(find, SW_SHOW);
-                    (SOME(LRESINT 0), state)
+                    (LRESINT 0, state)
                 end
 
                 (* Cut, Copy and Paste are all handled by the Edit window. *)
                 else if wId = menuCut
-                then (SendMessage(edit, WM_CUT); (SOME(LRESINT 0), state))
+                then (SendMessage(edit, WM_CUT); (LRESINT 0, state))
                 else if wId = menuCopy
-                then (SendMessage(edit, WM_COPY); (SOME(LRESINT 0), state))
+                then (SendMessage(edit, WM_COPY); (LRESINT 0, state))
                 else if wId = menuPaste
-                then (SendMessage(edit, WM_PASTE); (SOME(LRESINT 0), state))
+                then (SendMessage(edit, WM_PASTE); (LRESINT 0, state))
 
                 else if wId = menuPageSetup
                 then
@@ -251,13 +261,13 @@ let
                                      flags=PageSetupFlags.flags[], paperSize={x=0,y=0},
                                      minMargin={top=0,bottom=0,left=0,right=0},
                                      margin={top=0,bottom=0,left=0,right=0}} of
-                        NONE =&gt; (SOME(LRESINT 0), state)
-                    |    SOME {devMode, devNames, ...} =&gt;
-                            (SOME(LRESINT 0), SOME{edit=edit, devMode=devMode, devNames=devNames,
+                        NONE => (LRESINT 0, state)
+                    |    SOME {devMode, devNames, ...} =>
+                            (LRESINT 0, SOME{edit=edit, devMode=devMode, devNames=devNames,
                                           fileName=fileName})
                     )
 
-                else if wId = menuPrint (* &quot;Print&quot; menu item. *)
+                else if wId = menuPrint (* "Print" menu item. *)
                 then
                 let
                     (* Put up the dialogue box to get the settings. *)
@@ -268,9 +278,9 @@ let
                                   fromPage=1, toPage= ~1, minPage=1, maxPage= ~1, copies=1};
                 in
                     case printSettings of
-                        SOME {devMode, devNames, context = SOME hdc, flags, fromPage, toPage, ...} =&gt;
+                        SOME {devMode, devNames, context = SOME hdc, flags, fromPage, toPage, ...} =>
                         (let
-                            (* If the &quot;Selection&quot; button has been pressed we only print the
+                            (* If the "Selection" button has been pressed we only print the
                                selection. *)
                             val printWhat =
                                 if PrintDlgFlags.anySet(flags, PrintDlgFlags.PD_SELECTION)
@@ -280,12 +290,12 @@ let
                                     val _ = SendMessage(edit, EM_GETSEL{startPos = from, endPos = to})
                                     val text = GetWindowText edit
                                 in
-                                    if !from &lt; 0 orelse !from &gt; size text orelse
-                                       !to &lt; 0 orelse !from &gt; size text
-                                    then &quot;&quot;
+                                    if !from < 0 orelse !from > size text orelse
+                                       !to < 0 orelse !from > size text
+                                    then ""
                                     else String.substring(text, !from, !to - !from)
                                 end
-                                else (* &quot;All&quot; button pressed or &quot;Pages&quot; pressed. *)
+                                else (* "All" button pressed or "Pages" pressed. *)
                                     GetWindowText edit;
                             val textLength = size printWhat
 
@@ -310,7 +320,7 @@ let
                                    weight=FW_DONTCARE, italic=false, underline=false, strikeOut=false,
                                    charSet=ANSI_CHARSET, outputPrecision=OUT_DEFAULT_PRECIS,
                                    clipPrecision=CLIP_DEFAULT_PRECIS, quality=DEFAULT_QUALITY,
-                                   pitch=FIXED_PITCH, family=FF_MODERN, faceName=&quot;Courier&quot;}
+                                   pitch=FIXED_PITCH, family=FF_MODERN, faceName="Courier"}
                             val oldFont = SelectObject(hdc, hFont); (* Use this font. *)
 
                             val textMetric = GetTextMetrics hdc;
@@ -321,7 +331,7 @@ let
                                    we are in the range. *)
                                 val printThisPage =
                                     if PrintDlgFlags.anySet(flags, PrintDlgFlags.PD_PAGENUMS)
-                                    then pno &gt;= fromPage andalso (pno &lt;= toPage orelse toPage &lt; 0)
+                                    then pno >= fromPage andalso (pno <= toPage orelse toPage < 0)
                                     else true
                                 val pageRect = {top=0, left=0, bottom=pageHeight, right=pageWidth}
                                 (* Calculate the number of lines and columns. *)
@@ -330,7 +340,7 @@ let
 
                                 (* Output the lines to fill the page. *)
                                 fun outputLines lineNo p =
-                                    if lineNo &gt;= nLines
+                                    if lineNo >= nLines
                                     then p (* Return last pointer. *)
                                     else
                                     let
@@ -338,18 +348,18 @@ let
                                            the text, a line break, the last word break on the line
                                            or the maximum number of characters. *)
                                         fun findEnd lastBreak i =
-                                            if i &gt;= textLength then (textLength, textLength)
-                                            else if i-p &gt; nCols
+                                            if i >= textLength then (textLength, textLength)
+                                            else if i-p > nCols
                                             then
                                                 (
                                                 case lastBreak of
-                                                    NONE =&gt; (* No breaks on the line - break just before here. *)
+                                                    NONE => (* No breaks on the line - break just before here. *)
                                                         (i-1, i-1)
-                                                |    SOME b =&gt; b (* Break at the last break. *)
+                                                |    SOME b => b (* Break at the last break. *)
                                                 )
-                                            else if i &lt; textLength - 1 andalso
-                                                    String.sub(printWhat, i) = #&quot;\r&quot; andalso
-                                                    String.sub(printWhat, i+1) = #&quot;\n&quot;
+                                            else if i < textLength - 1 andalso
+                                                    String.sub(printWhat, i) = #"\r" andalso
+                                                    String.sub(printWhat, i+1) = #"\n"
                                             then (* End of line - stop here. *)
                                                 (i, i+2)
                                             else if Char.isSpace(String.sub(printWhat, i))
@@ -360,8 +370,8 @@ let
 
                                         val (endLine, nextLine) = findEnd NONE p
                                         val thisLine =
-                                            if p &gt;= textLength
-                                            then &quot;&quot;
+                                            if p >= textLength
+                                            then ""
                                             else String.substring(printWhat, p, endLine-p)
                                     in
                                         if printThisPage
@@ -382,7 +392,7 @@ let
                                             (* Fill the page with white. *)
                                             val _ = SetBkColor(hdc, white);
                                             val _ = SetTextColor(hdc, black);
-                                            val _ = ExtTextOut(hdc, {x=0, y=0}, [ETO_OPAQUE], SOME pageRect, &quot;&quot;, []);
+                                            val _ = ExtTextOut(hdc, {x=0, y=0}, [ETO_OPAQUE], SOME pageRect, "", []);
                                             (* Print the text. *)
                                             val next = outputLines 0 index
                                         in
@@ -391,7 +401,7 @@ let
                                         end
                                     else (* Format the page but don't print it. *) outputLines 0 index
                             in
-                                if nextPage &gt;= size printWhat
+                                if nextPage >= size printWhat
                                 then ()
                                 else printPage (pno+1) nextPage
                             end
@@ -403,27 +413,27 @@ let
                             SelectObject(hdc, oldFont);
                             DeleteObject(hFont);
                             DeleteDC hdc; (* Now delete the device context. *)
-                            (SOME(LRESINT 0), SOME{edit=edit, devMode=devMode, devNames=devNames,
+                            (LRESINT 0, SOME{edit=edit, devMode=devMode, devNames=devNames,
                                           fileName=fileName})
                         end
                             (* If any of the functions failed simply delete the device
                                context and return the original state. *)
-                            handle (exn as OS.SysErr _) =&gt; (
-                                PolyML.print exn; AbortDoc hdc; DeleteDC hdc; (SOME(LRESINT 0), state)))
-                    |    _ =&gt; (SOME(LRESINT 0), state)
+                            handle (exn as OS.SysErr _) => (
+                                print (exnName exn); AbortDoc hdc; DeleteDC hdc; (LRESINT 0, state)))
+                    |    _ => (LRESINT 0, state)
                 end
 
                 else if wId = menuAbout
-                then (aboutmlEdit hw; (SOME(LRESINT 0), state))
+                then (aboutmlEdit hw; (LRESINT 0, state))
 
-                else (NONE, state)
+                else (DefWindowProc(hw, msg), state)
 
-        |  FINDMSGSTRING{flags, findWhat, ...} =&gt;
+        |  FINDMSGSTRING{flags, findWhat, ...} =>
             if FindReplaceFlags.anySet(flags, FindReplaceFlags.FR_DIALOGTERM)
-            then (* The &quot;find&quot; box is going away. *)
+            then (* The "find" box is going away. *)
                 (
                     SetFocus(SOME edit);
-                    (SOME(LRESINT 0), state)
+                    (LRESINT 0, state)
                 )
             else if FindReplaceFlags.anySet(flags, FindReplaceFlags.FR_FINDNEXT)
             then (* The Find Next button has been pressed. *)
@@ -443,16 +453,16 @@ let
                 local
                     val toLower = String.map Char.toLower
                 in
-                    val doMatch: string * string -&gt; bool =
+                    val doMatch: string * string -> bool =
                         if FindReplaceFlags.anySet(flags, FindReplaceFlags.FR_MATCHCASE)
                         then op =
-                        else fn (s1, s2) =&gt; toLower s1 = toLower s2
+                        else fn (s1, s2) => toLower s1 = toLower s2
                 end
 
                 fun doFind p =
                 let
                     val isMatch =
-                        p &gt;= 0 andalso size text - p &gt;= size findWhat andalso
+                        p >= 0 andalso size text - p >= size findWhat andalso
                             doMatch(String.substring(text, p, findLen), findWhat)
                 in
                     if isMatch then p
@@ -462,7 +472,7 @@ let
                 end
                 val foundAt = doFind startPos
             in
-                if foundAt &gt;= 0 andalso foundAt + findLen &lt; size text
+                if foundAt >= 0 andalso foundAt + findLen < size text
                 then
                     (
                     SendMessage(edit, EM_SETSEL{startPos=foundAt, endPos=foundAt + findLen});
@@ -470,26 +480,26 @@ let
                     ()
                     )
                 else MessageBeep(MessageBoxStyle.fromWord 0wxFFFFFFFF);
-                (SOME(LRESINT 0), state)
+                (LRESINT 0, state)
             end
-            else (NONE, state)
+            else (DefWindowProc(hw, msg), state)
 
-        |    _ =&gt; (NONE, state)
+        |    _ => (DefWindowProc(hw, msg), state)
 
     (* If this document has been modified we want to ask before quitting or
        opening a new document. *)
     and checkForSave(hw, edit, fileName) =
         case SendMessage(edit, EM_GETMODIFY) of
-            LRESINT 0 =&gt; true (* Unmodified - continue. *)
-        |    _ =&gt; 
+            LRESINT 0 => true (* Unmodified - continue. *)
+        |    _ => 
             let
                 val res =
-                    MessageBox(SOME hw, &quot;Save document?&quot;, &quot;Confirm&quot;,
+                    MessageBox(SOME hw, "Save document?", "Confirm",
                                MessageBoxStyle.MB_YESNOCANCEL)
             in
                 if res = IDYES
-                then if fileName = &quot;&quot;
-                then saveAsDocument(hw, edit) &lt;&gt; NONE
+                then if fileName = ""
+                then saveAsDocument(hw, edit) <> NONE
                 else saveDocument(hw, fileName, edit)
                 else if res = IDNO
                 then true (* Continue anyway. *)
@@ -509,10 +519,10 @@ let
             (* Document is now unmodified. *)
             SendMessage(edit, EM_SETMODIFY{modified=false});
             true (* Succeeded. *)
-        end handle exn =&gt;
+        end handle exn =>
             (MessageBox(SOME hw,
-                concat[&quot;Unable to save to - &quot;, fileName, &quot;\n&quot;, exnMessage exn],
-                &quot;Open failure&quot;, MessageBoxStyle.MB_OK);
+                concat["Unable to save to - ", fileName, "\n"(*, exnMessage exn*)],
+                "Open failure", MessageBoxStyle.MB_OK);
              false)
 
     and saveAsDocument(hw, edit) =
@@ -522,14 +532,14 @@ let
                 owner = SOME hw,
                 template = TemplateDefault,
                 filter =
-                    [(&quot;Text Files (*.txt)&quot;, &quot;*.txt&quot;),
-                     (&quot;ML Files (*.sml)&quot;, &quot;*.sml&quot;),
-                     (&quot;All Files (*.*)&quot;, &quot;*.*&quot;)],
+                    [("Text Files (*.txt)", "*.txt"),
+                     ("ML Files (*.sml)", "*.sml"),
+                     ("All Files (*.*)", "*.*")],
                 customFilter = NONE,
                 filterIndex = 1,
-                file = &quot;&quot;,
+                file = "",
                 maxFile = 1000,
-                fileTitle = &quot;&quot;,
+                fileTitle = "",
                 initialDir = NONE,
                 title = NONE,
                 flags = OpenFileFlags.flags[],
@@ -537,18 +547,18 @@ let
             }
         in
             case GetSaveFileName on of
-                NONE =&gt; NONE
-            |    SOME {file, filterIndex, fileTitle, ...} =&gt;
+                NONE => NONE
+            |    SOME {file, filterIndex, fileTitle, ...} =>
                 let
                     (* If the user typed a file name without an extension use
                        the extension from the appropriate filter. *)
                     val suffix =
                         case filterIndex of
-                            1 =&gt; &quot;.txt&quot;
-                        |    2 =&gt; &quot;.sml&quot;
-                        |    _ =&gt; &quot;&quot;
+                            1 => ".txt"
+                        |    2 => ".sml"
+                        |    _ => ""
                     val fileName =
-                        if Char.contains fileTitle #&quot;.&quot;
+                        if Char.contains fileTitle #"."
                         then file else file ^ suffix
                 in
                     if saveDocument(hw, fileName, edit)
@@ -558,29 +568,29 @@ let
         end
 
     and aboutmlEdit hw =
-    (* Called when the user selects &quot;About...&quot; from the help menu. *)
+    (* Called when the user selects "About..." from the help menu. *)
     let
         (* Dialogue template containing three items: an OK button, a static picture and
            a piece of text. *)
         val pictureId = 1000 (* Could use any number here. *)
         open Static.Style
         val template =
-            {x = 0, y = 0, cx = 210, cy = 94, font = SOME (8, &quot;MS Sans Serif&quot;), menu = NONE,
-             class = NONE,title = &quot;About mlEdit&quot;, extendedStyle = 0,
+            {x = 0, y = 0, cx = 210, cy = 94, font = SOME (8, "MS Sans Serif"), menu = NONE,
+             class = NONE,title = "About mlEdit", extendedStyle = 0,
              style = flags[WS_POPUP, WS_CAPTION],
              items =
               [{x = 73, y = 62, cx = 50, cy = 14, id = 1,
                 class = DLG_BUTTON (flags[WS_CHILD, WS_VISIBLE, WS_TABSTOP]),
-                title = DLG_TITLESTRING &quot;OK&quot;, creationData = NONE, extendedStyle = 0},
+                title = DLG_TITLESTRING "OK", creationData = NONE, extendedStyle = 0},
                {x = 7, y = 7, cx = 32, cy = 32, id = pictureId,
                 class = DLG_STATIC (flags[WS_CHILD, WS_VISIBLE, SS_ICON]),
-                title = DLG_TITLESTRING &quot;&quot;, creationData = NONE, extendedStyle = 0},
+                title = DLG_TITLESTRING "", creationData = NONE, extendedStyle = 0},
                {x = 15, y = 39, cx = 180, cy = 21, id = 65535,
                 class = DLG_STATIC (flags[WS_CHILD, WS_VISIBLE, WS_GROUP]),
                 title =
                     DLG_TITLESTRING
-                       &quot;mlEdit - An exmple of Windows programming in Poly/ML\
-                       \\nCopyright David C.J. Matthews 2001&quot;,
+                       "mlEdit - An example of Windows programming in Poly/ML\
+                       \\nCopyright David C.J. Matthews 2001-7",
                 creationData = NONE,  extendedStyle = 0}] }
 
         (* Dialogue procedure. *)
@@ -602,7 +612,7 @@ let
         ()
     end
 
-    val className = &quot;mlEditWindowClass&quot;
+    val className = "mlEditWindowClass"
     (* Register a class for the top-level window.  Use the Poly icon from the application. *)
     val myWindowClass = RegisterClassEx{style = Class.Style.flags[],
         wndProc = wndProc, hInstance = app,
@@ -610,7 +620,7 @@ let
         className = className, hIconSm = NONE};
     
     
-    val w = CreateWindow{class = myWindowClass, name = &quot;mlEdit&quot;, style = Window.Style.WS_OVERLAPPEDWINDOW,
+    val w = CreateWindow{class = myWindowClass, name = "mlEdit", style = Window.Style.WS_OVERLAPPEDWINDOW,
         x  = CW_USEDEFAULT, y = CW_USEDEFAULT, height = CW_USEDEFAULT, width = CW_USEDEFAULT,
         relation = PopupWindow menu,
         instance = app, init = NONE};
@@ -622,6 +632,7 @@ in
     (* Must unregister the class before returning otherwise RegisterClass will
        fail if we call mlEdit again. *)
     UnregisterClass(className, app)
-end;</pre>
+end;
+         </pre>
 </body>
 </html>
