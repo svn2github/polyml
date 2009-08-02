@@ -121,10 +121,10 @@ for a new thread if this is not specified is false.</BLOCKQUOTE>
   interrupts are delivered to the thread. This includes broadcast interrupts and 
   also interrupts directed at a specific thread with the interrupt call. InterruptDefer 
   means the thread will not receive any interrupts. However, if the thread has 
-  been interrupted the interrupt may be delivered if the thread calls setAttributes 
-  to change its interrupt state. InterruptSynch means interrupts are delivered 
-  synchronously. An interrupt will be delayed until an interruption point. An 
-  interruption point is one of: testInterrupt, ConditionVar.wait, ConditionVar.waitUntil 
+  previously been interrupted the interrupt may be delivered when the thread calls 
+  setAttributes to change its interrupt state. InterruptSynch means interrupts 
+  are delivered synchronously. An interrupt will be delayed until an interruption 
+  point. An interruption point is one of: testInterrupt, ConditionVar.wait, ConditionVar.waitUntil 
   and various library calls that may block, such as IO calls, pause etc. N.B. 
   Mutex.lock is not an interruption point even though it can result in a thread 
   blocking for an indefinite period. InterruptAsynch means interrupts are delivered 
@@ -193,9 +193,10 @@ remain unchanged.</BLOCKQUOTE>
   it. Locking and unlocking are intended to be fast in the situation when there 
   is no other process attempting to lock the mutex. Mutexes are non-recursive: 
   if a thread tries to lock a mutex that it has already locked it will deadlock. 
-  These functions may not work correctly if an asynchronous interrupt is delivered 
-  during the calls. A thread should use synchronous interrupt when using these 
-  calls.</P>
+  Note: a thread should never attempt to lock or unlock a mutex if it may receive 
+  an asynchronous interrupt. It should always set its interrupt state to either 
+  InterruptDefer or InterruptSynch before calling these functions. An asynchronous 
+  interrupt may leave the mutex in an indeterminate state.</P>
 <PRE STYLE="margin-bottom: 0.5cm"><STRONG>type</STRONG> mutex</PRE><BLOCKQUOTE>
 The type of a mutex</BLOCKQUOTE>
 <PRE><STRONG>val</STRONG> mutex: unit -&gt; mutex</PRE>
@@ -249,9 +250,11 @@ Make a new condition variable.</BLOCKQUOTE>
     is signalled the function will return normally even if it has not yet re-acquired 
     the mutex. The interrupt state will be delivered on the next call to &quot;wait&quot;, 
     &quot;Thread.testInterrupt&quot; or other blocking call.</p>
-  <p>If the thread is handling interrupts asynchronously an interrupt may be delivered 
-    without re-acquiring the lock.</p>
-  </BLOCKQUOTE>
+  <p>A thread should never call this function if it may receive an asynchronous 
+    interrupt. It should always set its interrupt state to either InterruptSynch 
+    or InterruptDefer beforehand. An asynchronous interrupt may leave the condition 
+    variable and the mutex in an indeterminate state and could lead to deadlock.</p>
+</BLOCKQUOTE>
 <BLOCKQUOTE>
   <p>A condition variable should only be associated with one mutex at a time. 
     All the threads waiting on a condition variable should pass the same mutex 
