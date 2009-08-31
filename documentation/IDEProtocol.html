@@ -143,40 +143,27 @@ The start character is an upper case character, the end character the correspond
 The CODE is, currently, one of the following
   
 <table border="0" width="43%">
-
   <tbody>
+    <tr> 
+      <td width="11%">O</td>
+      <td width="89%">Return a list of properties for the node</td>
+    </tr>
+    <tr> 
+      <td>T</td>
+      <td>Return type information</td>
+    </tr>
+    <tr> 
+      <td>I</td>
+      <td>Return declaration location</td>
+    </tr>
+    <tr> 
+      <td>M</td>
+      <td>Move relative to a given position</td>
+    </tr>
     <tr>
- 
-    <td width="11%">O</td>
-
-    <td width="89%">Return a list of properties for the node</td>
-
-  </tr>
-
-  <tr>
- 
-    <td>T</td>
-
-    <td>Return type information</td>
-
-  </tr>
-
-  <tr>
- 
-    <td>I</td>
-
-    <td>Return declaration location</td>
-
-  </tr>
-
-  <tr>
- 
-    <td>M</td>
-
-    <td>Move relative to a given position</td>
-
-  </tr>
-
+      <td>V</td>
+      <td>Return a list of references to an identifier</td>
+    </tr>
   </tbody>
 </table>
 
@@ -211,9 +198,9 @@ The CODE is, currently, one of the following
 
   
   The commands are a set of strings separated by ESC ','. At the moment the strings 
-  are all single characters and identify the set of valid commands and sub-commands: 
-  i.e. T,I,J,S,U,C,N and P. For forward compatibility the IDE should accept but 
-  ignore other strings.
+are all single characters and identify the set of valid commands and sub-commands: 
+i.e. T,I,J,S,V,U,C,N and P. For forward compatibility the IDE should accept but 
+ignore other strings. 
 <p> <span class="packet-name">T Request:</span>
 
 </p>
@@ -318,6 +305,26 @@ The action
 
 PolyML selects the parse tree node at the given location and moves relative 
   to it. If the move is not possible the location remains unchanged. If the move is successful then the new move location is returned in the packet. 
+<p> <span class="packet-name">V Request:</span>
+
+</p>
+<div class="packet">ESC 'V' request-id ESC ',' parse-tree-id ESC ',' start-offset ESC ',' end-offset ESC 'v'</div>
+
+
+<span class="packet-name">V Response:</span>
+
+<div class="packet">ESC 'V' request-id ESC ',' parse-tree-id ESC ',' start-offset 
+  ESC ',' end-offset ESC ',' start-ref1 ESC ',' end-ref1 ESC ',' .... start-refn 
+  ESC ',' end-refn ESC 'v'</div>
+
+  
+  Returns the list of local references to an identifier if the parse tree location 
+refers to a local value identifier. The results are a sequence of start and end 
+offsets. If the specified location is not a local value identifier the result 
+is 
+<div class="packet">ESC 'V' request-id ESC ',' parse-tree-id ESC ',' start-offset 
+  ESC ',' end-offset ESC 'v'</div>
+  
 
 <h3>Compilation.</h3>
 
