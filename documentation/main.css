@@ -27,3 +27,6 @@ CODE {
 	/* font-weight: bold; */
   color: #770000;
 }
+.function {
+	font-family: "Courier New", Courier, mono;
+}
