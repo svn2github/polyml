@@ -270,7 +270,9 @@ if(Allowhover) {
         -lpolymain -lpolyml</font><br>
         It is possible to use the ld command rather than cc here but you may need 
         to include some of the default C and C++ libraries on the command line. 
-        On some platforms it may be necessary to add -lstdc++.</font></p>
+        On some platforms it may be necessary to add -lstdc++ and on Mac OS X 
+        you may need to add <font face="Courier New, Courier, mono">-segprot POLY 
+        rwx rwx</font> to prevent a Bus Error when you run your application.</font></p>
       <p><font face="Arial, Helvetica, sans-serif">It is often the case that applications 
         built using Poly/ML will want to use the normal Poly/ML top-level but 
         with additional ML functions or structures built in. In the old version 
