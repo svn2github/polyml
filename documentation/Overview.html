@@ -24,8 +24,8 @@
   a signature, functor or structure whose name matches the name of the file. This 
   is a consequence of using the Poly/ML &quot;make&quot; system to build the compiler. 
   The larger modules will have a signature file, a functor which contains most 
-  of the code of the code and a small file which defines the structure as an application 
-  of the functor to its arguments.</p>
+  of the code and a small file which defines the structure as an application of 
+  the functor to its arguments.</p>
 <h3>Compiler control</h3>
 <p>mlsource/MLCompiler/Debug.ML - Structure<br>
   mlsource/MLCompiler/COMPILER_BODY.ML - Functor<br>
@@ -85,7 +85,7 @@
   to get the next symbol and calls functions in ParseTree, Signatures and Structures 
   to build the parse-tree as it goes. ParseType does this for the type-expressions 
   such as type constraints or in signatures. Skips and Utilities contain helper 
-  functions. </p>
+  functions for parsing. </p>
 <h3>Parse Tree</h3>
 <p>mlsource/MLCompiler/STRUCTURESSIG.sml - Signature<br>
   mlsource/MLCompiler/STRUCTURES_.ML - Functor<br>
@@ -102,8 +102,8 @@
   the definitions for structures and functors and Signatures the definitions for 
   signatures. The datatypes for the parse tree are local to each of these modules 
   so each module contains all the code that needs to walk over the parse tree. 
-  Each of these modules makes use of the support modules to perform particular 
-  tasks.</p>
+  Each of these modules makes use of the parse tree support modules to perform 
+  particular tasks.</p>
 <h3>Type Checking</h3>
 <p>mlsource/MLCompiler/TYPETREESIG.sml - Signature<br>
   mlsource/MLCompiler/TYPE_TREE.ML - Functor<br>
@@ -284,7 +284,9 @@
   libpolyml/proper_io.cpp</p>
 <p>These files contain the operating system interfaces needed to support the Standard 
   Basis Library. proper_io.cpp contains some wrap-around functions to avoid bugs 
-  and inconsistencies in some operating system calls.</p>
+  and inconsistencies in some operating system calls. errors.h contains a table 
+  that maps between error numbers (the value stored in errno on Unix) and their 
+  textual equivalents.</p>
 <h3>State Saving and Exporting</h3>
 <p>polyexports.h<br>
   libpolyml/exporter.cpp<br>
@@ -400,5 +402,137 @@
   various additional functions. profiling.cpp supports profiling for time and 
   space. sighandler.cpp supports the Signal structure that allows an ML function 
   to be called as the result of a signal.</p>
+<h2>Basis Library</h2>
+<p>The basis library is compiled when Poly/ML is built for a particular platform. 
+  Apart from the entries added by the initialisation process all entries in the 
+  name space come from the basis library. The library is mostly compiled into 
+  a basic name space created during the initialisation process. When this is complete 
+  a new name space is built using functions from the basis library and all the 
+  declarations are copied over with the exception of some of the support modules 
+  that are only used internally in the basis library.</p>
+<h3>Build control</h3>
+<p>exportPoly.sml<br>
+  basis/build.sml </p>
+<p>These files are used to control the build process.</p>
+<h3>Values and Infixes</h3>
+<p>basis/InitialBasis.ML</p>
+<p>Most of the library is arranged as modules (structure or functors and their 
+  signatures). InitialBasis contains various values and infix declarations that 
+  can appear free in the basis and in particular those that are needed to compile 
+  the rest of the basis. A few additional value declarations are made later in 
+  the process, in particular the General structure is opened after it has been 
+  compiled. </p>
+<h3>PolyML structure</h3>
+<p>basis/InitialPolyML.ML<br>
+  basis/PrettyPrinter.ML<br>
+  basis/FinalPolyML.sml<br>
+  basis/TopLevelPolyML.sml</p>
+<p>The PolyML structure is unusual in that it is actually built in several phases. 
+  There is a version of the structure created in the initialisation process that 
+  contains special definitions such as PolyML.print that are infinitely overloaded 
+  and cannot be written in ML. InitialPolyML is compiled at the start of building 
+  the library and extends the structure to include some functions, such as onEntry, 
+  that are used within the basis library itself. PrettyPrinter, FinalPolyML and 
+  TopLevelPolyML are compiled after the rest of the basis library. PrettyPrinter 
+  contains a pretty printer, FinalPolyML contains the definition of PolyML.compiler 
+  and TopLevelPolyML contains code for the IDE protocol.</p>
+<h3>Support Modules</h3>
+<p>basis/LibraryIOSupport.sml<br>
+  basis/LibrarySupport.sml<br>
+  basis/VectorOperations.sml<br>
+  basis/VectorSliceOperations.sml <br>
+  basis/PolyVectorOperations.sml<br>
+  basis/BasicStreamIO.sml<br>
+  basis/ExnPrinter.sml</p>
+<p>A few modules are compiled during the build process and removed later.</p>
+<h3>Standard Basis Library</h3>
+<p> basis/Array.sml<br>
+  basis/Array2.sml<br>
+  basis/BIT_FLAGS.sml<br>
+  basis/BinIO.sml<br>
+  basis/BinPrimIO.sml<br>
+  basis/Bool.sml<br>
+  basis/BoolArray.sml<br>
+  basis/Byte.sml<br>
+  basis/CommandLine.sml<br>
+  basis/Date.sml<br>
+  basis/General.sml<br>
+  basis/GenericSock.sml<br>
+  basis/IEEEReal.sml<br>
+  basis/IEEE_REAL.sml<br>
+  basis/IMPERATIVE_IO.sml<br>
+  basis/INTEGER.sml<br>
+  basis/INetSock.sml<br>
+  basis/IO.sml<br>
+  basis/ImperativeIO.sml<br>
+  basis/Int.sml<br>
+  basis/Int32.sml<br>
+  basis/IntArray.sml<br>
+  basis/IntArray2.sml<br>
+  basis/IntInf.sml<br>
+  basis/LargeWord.sml<br>
+  basis/List.sml<br>
+  basis/ListPair.sml<br>
+  basis/MATH.sml<br>
+  basis/MONO_ARRAY.sml<br>
+  basis/MONO_ARRAY_SLICE.sml<br>
+  basis/MONO_VECTOR.sml<br>
+  basis/MONO_VECTOR_SLICE.sml<br>
+  basis/NetHostDB.sml<br>
+  basis/NetProtDB.sml<br>
+  basis/NetServDB.sml<br>
+  basis/OS.sml<br>
+  basis/Option.sml<br>
+  basis/PRIM_IO.sml<br>
+  basis/PackRealBig.sml<br>
+  basis/PackWord8Big.sml<br>
+  basis/Posix.sml<br>
+  basis/PrimIO.sml<br>
+  basis/Real.sml<br>
+  basis/RealArray.sml<br>
+  basis/STREAM_IO.sml<br>
+  basis/Socket.sml<br>
+  basis/String.sml<br>
+  basis/StringCvt.sml<br>
+  basis/SysWord.sml<br>
+  basis/Text.sml<br>
+  basis/TextIO.sml<br>
+  basis/TextPrimIO.sml<br>
+  basis/Time.sml<br>
+  basis/Timer.sml<br>
+  basis/Unix.sml<br>
+  basis/UnixSock.sml<br>
+  basis/Vector.sml<br>
+  basis/Windows.sml<br>
+  basis/Word32.sml<br>
+  basis/Word32.x86_64.sml<br>
+  basis/Word8.sml<br>
+  basis/Word8Array.sml
+</p>
+<p>These all contain structures, functors and signatures defined in the Standard 
+  Basis Library.</p>
+<h3>Poly/ML Extensions</h3>
+<p> basis/RuntimeCalls.ML<br>
+  basis/Signal.sml<br>
+  basis/SingleAssignment.sml<br>
+  basis/Thread.sml<br>
+  basis/Universal.ML<br>
+  basis/UniversalArray.ML<br>
+  basis/Weak.sml<br>
+  basis/HashArray.ML<br>
+  basis/processes.ML<br>
+  basis/SML90.sml
+</p>
+<p>These are extensions added by the Poly/ML system. RuntimeCalls lists the RTS 
+  call numbers. <a href="/docs/Signal.html">Signal</a> provides a way to handle 
+  Unix signals (and console interrupts in Windows). SingleAssignment provides 
+  a reference that can be assigned to once. <a href="/docs/Threads.html">Thread</a> 
+  provides multi-threading and processes contains a definition of the old Poly/ML 
+  Process structure for backwards compatibility. Weak provides weak references 
+  i.e. references that can be used to detect when a value is no longer referenced. 
+  HashArray provides a hash table structure. SML90 provides backwards compatibility 
+  for ML/90. It was defined in the original standard basis document but later 
+  removed. <br>
+</p>
 </body>
 </html>
