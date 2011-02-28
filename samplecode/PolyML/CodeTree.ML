@@ -14,7 +14,7 @@ local
     val two = mkConstant (RunCall.unsafeCast 2)
     val block =
         mkEnv[mkDec(1, addOne), mkCall(mkLoad(1, 0), [two])]
-    val run = genCode(block, []) ()
+    val run = genCode block ()
     val result = valOf (evalue run)
 in
     val r: int = RunCall.unsafeCast result
