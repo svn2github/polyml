@@ -62,3 +62,30 @@ in
     code();
     ()
 end;
+
+(* Example of building a loop. *)
+let
+    open RuntimeCalls;
+    open PolyML.CodeTree;
+
+    fun printInt n = TextIO.print(Int.toString n ^ "\n");
+
+    val code =
+    mkBeginLoop(
+    mkIf(
+            mkCall(rtsFunction POLY_SYS_equala, [mkLoad(1,0), mkConstant(RunCall.unsafeCast 10)]),
+            mkConstant(RunCall.unsafeCast 0),
+            mkEnv[
+                mkCall(mkConstant(RunCall.unsafeCast printInt), [mkLoad(1,0)]),
+                mkLoop[
+                    mkCall(rtsFunction POLY_SYS_aplus, [mkLoad(1,0), mkConstant(RunCall.unsafeCast 1)])
+                ]
+            ]
+        )
+        ,
+        [mkDec(1, mkConstant(RunCall.unsafeCast 0))]
+    )
+in
+    genCode code ()
+end;
+
