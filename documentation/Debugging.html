@@ -10,14 +10,14 @@
 
 <h2>Source Level Debugging in Poly/ML</h2>
 
-<p>The development version 4.1 of Poly/ML includes an experimental source-level debugger.
-&nbsp; You can use it to set breakpoints in the program and print the values of &nbsp;
-local variables.&nbsp; To turn on debugging for a particular piece of code set the
-compiler variable <tt>PolyML.Compiler.debug</tt> to true.&nbsp; You can freely mix
-functions compiled with debugging on with functions compiled with debugging off, you
-simply can't set a breakpoint in a non-debuggable function or print its internal state.
-&nbsp; The debugging control functions are all in the <tt>PolyML.Debug</tt> structure<tt>.
-</tt>It is often convenient to open this structure before debugging a program.</p>
+<p>Poly/ML includes a source-level debugger. &nbsp; You can use it to set breakpoints 
+  in the program and print the values of local variables.&nbsp; To turn on debugging 
+  for a particular piece of code set the compiler variable <tt>PolyML.Compiler.debug</tt> 
+  to true.&nbsp; You can freely mix functions compiled with debugging on with 
+  functions compiled with debugging off, you simply can't set a breakpoint in 
+  a non-debuggable function or print its internal state. &nbsp; The debugging 
+  control functions are all in the <tt>PolyML.Debug</tt> structure<tt>. </tt>It 
+  is often convenient to open this structure before debugging a program.</p>
 
 <h3><big>An Example Session.</big></h3>
 
@@ -198,29 +198,37 @@ and compile the function without debugging.</p>
 <h3>Tracing program execution</h3>
 
 <p><tt>&nbsp;&nbsp;&nbsp; val trace = fn : bool -&gt; unit<br>
-</tt>The <tt>trace</tt> function turns on and off function tracing.&nbsp; Function tracing
-prints the arguments and results of every debuggable function. It is possible to turn on
-and off tracing while a function is running by <a href="Intro1.html#ControlC">switching to
-the second shell</a>, typing the debugging commands and switching back again.</p>
+  </tt>The <tt>trace</tt> function turns on and off function tracing.&nbsp; Function 
+  tracing prints the arguments and results of every debuggable function.</p>
 
 <h3>Breakpoints</h3>
 
 <p><tt>&nbsp;&nbsp;&nbsp; val breakAt = fn : string * int -&gt; unit<br>
-&nbsp;&nbsp;&nbsp; val breakIn = fn : string -&gt; unit<br>
-&nbsp;&nbsp;&nbsp; val clearAt = fn : string * int -&gt; unit<br>
-&nbsp;&nbsp;&nbsp; val clearIn = fn : string -&gt; unit</tt></p>
+  &nbsp;&nbsp;&nbsp; val breakIn = fn : string -&gt; unit<br>
+  &nbsp;&nbsp;&nbsp; val breakEx = fn : exn -&gt; unit<br>
+  &nbsp;&nbsp;&nbsp; val clearAt = fn : string * int -&gt; unit<br>
+  &nbsp;&nbsp;&nbsp; val clearIn = fn : string -&gt; unit<br/>
+  &nbsp;&nbsp;&nbsp; val clearEx = fn : exn -&gt; unit</tt></p>
 
-<p>Breakpoints can be set with the <tt>breakAt</tt> or <tt>breakIn</tt> functions and
-cleared with <tt>clearAt</tt> or <tt>clearIn</tt>.&nbsp; <tt>breakAt</tt> takes a file
-name and line number and <tt>breakIn</tt> a function name.&nbsp; The file name and line
-have to given exactly otherwise the breakpoint will not work.&nbsp; <tt>breakIn</tt> is
-more flexible about the function name.&nbsp; It can be the function name used in the
-declaration (e.g. <tt>f</tt>) or the full &quot;path name&quot;.&nbsp; The latter is
-useful when the program contains several functions with the same name since setting a
-breakpoint in <tt>f</tt> stops in any function called <tt>f</tt>.&nbsp; <tt>breakIn</tt>
-and <tt>breakAt</tt> simply record that you want a breakpoint.&nbsp; There is no check
-when they are called that the appropriate location actually exists and you can set a
-breakpoint for a function and then compile it later.</p>
+<p>Breakpoints can be set with the <tt>breakAt</tt>, <tt>breakIn</tt> or <tt>breakEx</tt> 
+  functions and cleared with <tt>clearAt</tt>, clearIn or <tt>clearEx</tt>.&nbsp; 
+  <tt>breakAt</tt> takes a file name and line number and <tt>breakIn</tt> a function 
+  name.&nbsp; The file name and line have to given exactly otherwise the breakpoint 
+  will not work.&nbsp; <tt>breakIn</tt> is more flexible about the function name.&nbsp; 
+  It can be the function name used in the declaration (e.g. <tt>f</tt>) or the 
+  full &quot;path name&quot;.&nbsp; The latter is useful when the program contains 
+  several functions with the same name since setting a breakpoint in <tt>f</tt> 
+  stops in any function called <tt>f</tt>.&nbsp; <tt>breakIn</tt> and <tt>breakAt</tt> 
+  simply record that you want a breakpoint.&nbsp; There is no check when they 
+  are called that the appropriate location actually exists and you can set a breakpoint 
+  for a function and then compile it later. <tt>breakEx</tt> sets a breakpoint 
+  for a particular exception and causes the program to stop at the end of the 
+  function that raises the exception unless it is also handled there. The argument 
+  is the exception to trap. It is possible to trap exceptions that take a parameter. 
+  Just provide it with a dummy parameter to create a value of type <tt>exn</tt> 
+  that can be passed to <tt>breakEx</tt>. The actual parameter value will be ignored 
+  and the debugger will be entered whenever the exception is raised with any parameter 
+  value. </p>
 
 <p>When a breakpoint is reached the program stops with a <tt>debug&gt;</tt> prompt. &nbsp;
 This is a normal Poly/ML top-level and you can type any ML expression.&nbsp; The only
