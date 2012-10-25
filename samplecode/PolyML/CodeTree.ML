@@ -13,7 +13,7 @@ local
         mkFunction(mkCall(addFn, [mkLoad(~1, 0), one]), 1, "addOne")
     val two = mkConstant (RunCall.unsafeCast 2)
     val block =
-        mkEnv[mkDec(1, addOne), mkCall(mkLoad(1, 0), [two])]
+        mkEnv([mkDec(1, addOne)], mkCall(mkLoad(1, 0), [two]))
     val run = genCode block ()
     val result = valOf (evalue run)
 in
@@ -51,12 +51,12 @@ let
     val hello = mkConstant(RunCall.unsafeCast "Hello")
     val world = mkConstant(RunCall.unsafeCast "World\n")
     val block =
-        mkEnv[
-            mkDec(1, concatWithSpace),
+        mkEnv(
+            [mkDec(1, concatWithSpace)],
             mkCall(printCode,
                 [mkCall(mkLoad(1, 0), [hello, world])]
             )
-        ]
+        )
     val code = genCode block
 in
     code();
@@ -75,15 +75,15 @@ let
     mkIf(
             mkCall(rtsFunction POLY_SYS_equala, [mkLoad(1,0), mkConstant(RunCall.unsafeCast 10)]),
             mkConstant(RunCall.unsafeCast 0),
-            mkEnv[
-                mkCall(mkConstant(RunCall.unsafeCast printInt), [mkLoad(1,0)]),
+            mkEnv(
+                [mkNullDec(mkCall(mkConstant(RunCall.unsafeCast printInt), [mkLoad(1,0)]))],
                 mkLoop[
                     mkCall(rtsFunction POLY_SYS_aplus, [mkLoad(1,0), mkConstant(RunCall.unsafeCast 1)])
                 ]
-            ]
+            )
         )
         ,
-        [mkDec(1, mkConstant(RunCall.unsafeCast 0))]
+        [(1, mkConstant(RunCall.unsafeCast 0))]
     )
 in
     genCode code ()
